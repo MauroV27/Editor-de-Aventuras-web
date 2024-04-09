@@ -1,0 +1,248 @@
+:root {
+    --mainColor : rgb(64, 64, 64);
+    --mainLimit : rgb(16, 16, 16);
+    --painelColor : rgb(32, 32, 32);
+    --textColor : rgb(200, 200, 200);
+}
+
+*{
+    border-style: solid;
+    border-width: 0;
+    border-color: var(--brdr);
+    column-rule-style:solid;
+    column-rule-color: var(--bg-panel);
+}
+
+body, button, input, textarea, select {  font-family: "Open Sans", Sans-Serif; color: var(--textColor); }
+button { background-color: var(--mainColor); font-weight: bold;}
+
+button:hover {
+    background-color: var(--textColor);
+    color: var(--painelColor);
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.container { 
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: row;
+}
+
+.frameViewContainer {
+    width: 80%;
+    height: 100%;
+    display: flex;
+    background-color: var(--mainColor);;
+    justify-content: center;
+}
+
+.frameRender {
+    margin: auto auto;
+}
+
+
+.verticalPanel {
+    width: 20%;
+    height: 100%;
+
+    background-color: var(--mainColor);
+    display: flex;
+    flex-direction: column;
+}
+
+.frameProperties {
+    height: 40%;
+    background-color: var(--painelColor);
+    border: 2px solid var(--mainLimit);
+
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+}
+
+.hotspotList > .itemElement {
+    height: 32px;
+}
+
+.hotspotList > .itemElement > p {
+    padding-left: 4px;
+    font-size: small;
+    margin: auto 0;
+    vertical-align: middle;
+}
+
+.actionHotSpot > button{
+    height: 100%;
+}
+
+
+.framesManager {
+    height: 60%;
+    background-color: var(--painelColor);
+    border: 2px solid var(--mainLimit);
+
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+}
+
+.framesList, .hotspotList {
+    height: 80%;
+    padding: 8px;
+
+    /* Code for create scrolbar (WOW)*/
+    overflow: auto;
+}
+
+.itemElement > h3 {
+    margin: 0;
+    height: 10%;
+}
+
+.btn-action {
+    height: 32px;
+    width: 200px;
+    margin: auto;
+}
+
+.itemElement {
+    width: 100%;
+    height: 48px;
+    margin-bottom: 12px;
+    background-color: var(--mainColor);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.frameElement > button {
+    margin: auto 2;
+    height: auto;
+}
+
+/* Modal POPUP for add HotSpot : */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 8;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--mainColor);
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    margin: 50px auto;
+    border: 1px solid var(--mainLimit);
+    width: 40%;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--mainColor);
+
+    /* color: var(--textColor); */
+    padding: 8px 16px;
+}
+
+.modal-content > h3 {
+    margin: 12px auto;
+}
+
+.modal-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.modal-row > select {
+    color: var(--painelColor);
+}
+
+.modal-row > button {
+    width: 48%;
+    height: 32px;
+    background-color: var(--textColor);
+    color: var(--painelColor);
+}
+
+.modal-row > button:hover {
+    color: var(--textColor);
+    background-color: var(--painelColor);
+}
+
+
+/* Render and edit Rect HotSpots */
+
+.hotSpotsRenderContainer {
+    position: absolute;
+    overflow: visible;
+    z-index: 1;
+}
+
+.resizable {
+    background: #ffffff22;
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    top: 100px;
+    left: 100px;
+}
+
+.renderHotSpot{
+    width: 100%;
+    height: 100%;
+    border: 3px solid #4286f4;
+    box-sizing: border-box;
+    position: absolute;
+    background-color: rgba(66, 134, 244, .25);
+}
+
+.selectedHotSpot {
+    background-color: rgba(244, 66, 66, 0.25);
+}
+
+.resizers .resizer{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%; /*magic to turn square into circle*/
+    background: white;
+    border: 3px solid #4286f4;
+    position: absolute;
+}
+
+.resizers .resizer.top-left {
+    left: -5px;
+    top: -5px;
+    cursor: nwse-resize; /*resizer cursor*/
+}
+.resizers .resizer.top-right {
+    right: -5px;
+    top: -5px;
+    cursor: nesw-resize;
+}
+.resizers .resizer.bottom-left {
+    left: -5px;
+    bottom: -5px;
+    cursor: nesw-resize;
+}
+.resizers .resizer.bottom-right {
+    right: -5px;
+    bottom: -5px;
+    cursor: nwse-resize;
+}

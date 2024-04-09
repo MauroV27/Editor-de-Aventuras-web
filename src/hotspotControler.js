@@ -1,0 +1,273 @@
+function clamp(value, vmin, vmax){
+    return Math.max( Math.min(value, vmax), vmin);
+}
+
+
+class InteractiveShape {
+
+    constructor() {}
+    
+    setEditable( state ){
+        // TODO : Check if state is bool type :
+        this.editable = state;
+    }
+
+    // -------- Methods to overwrite -------- :
+
+    // Return params from recreate shape :
+    getParams(){
+        return null;
+    }
+
+    // Called to render shape in running time : 
+    render(){}
+    
+    // Receive a position and check if inside or outside shape :
+    checkCollision(x, y, dlt = -5){                
+        return false;
+    }
+    
+    // Return an function that will be use to move shape in canvas
+    moveFunction() {}
+
+    // Return list of points in shape
+    getPoints(){
+        return null;
+    }
+
+    // Function that will be called after move ends
+    stopMove(){}
+}
+
+
+class Point {
+    // Classe para gerir os pontos na tela
+    constructor( x, y, color, radius=20, ref=null){
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.ref = ref;
+    }
+
+    render(){               // Função para desenhar os pontos na tela
+        fill( this.color );
+        circle(this.x, this.y, this.radius);
+    }
+
+    movePoint(npx, npy){
+        this.x = clamp(npx, 10, canvas.width - 10);
+        this.y = clamp(npy, 10, canvas.height - 10);
+    }
+
+    move( npx, npy ){       // Função para mover os pontos com o mouse
+        this.movePoint(npx, npy);
+    }
+}
+
+class Rect extends InteractiveShape{
+    constructor( x, y, w, h, color="" ){
+        super();
+        this.p1 = new Point( x, y, color, 5 ); // pmin
+        this.p2 = new Point( x + w, y + h, color, 5 ); // pmax 
+        this.color = color;
+
+        this.p1.stopMove = () => this.stopMove();
+        this.p2.stopMove = () => this.stopMove();
+
+        this.editable = false;
+    }
+
+    getParams(){
+        return {
+            x: this.p1.x,
+            y: this.p1.y,
+            w: this.p2.x - this.p1.x,
+            h: this.p2.y - this.p1.y,
+        }
+    }
+
+    render(){
+        if ( this.editable ){
+            fill(this.color +"88");
+            stroke(this.color);
+    
+            rect( this.p1.x, this.p1.y, this.p2.x - this.p1.x, this.p2.y  -this.p1.y );
+            this.p1.render();
+            this.p2.render();
+        } else {
+            fill(this.color +"22");
+            stroke(this.color);
+
+            rect( this.p1.x, this.p1.y, this.p2.x - this.p1.x, this.p2.y  -this.p1.y );			
+        }
+        
+    }
+    
+    checkCollision(x, y, dlt = -5){                
+        const collX = (x > ( this.p1.x - dlt ) && x < ( this.p2.x + dlt ));
+        const collY = (y > ( this.p1.y - dlt ) && y < ( this.p2.y + dlt ));
+        
+        return collX && collY;
+    }
+    
+    moveFunction() {
+
+        if ( this.editable == false ) return null;
+
+        const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
+        const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
+
+        return (x, y) => {
+            this.p1.move( x - PMP1.x, y - PMP1.y);
+            this.p2.move( x - PMP2.x, y - PMP2.y);
+        }
+    }
+
+    getPoints(){
+        return [ this.p1, this.p2 ];
+    }
+
+    stopMove(){
+        if ( this.p1.x > this.p2.x || this.p1.y > this.p2.y ){
+            const pMin = {x: Math.min(this.p1.x, this.p2.x), y : Math.min(this.p1.y, this.p2.y) };
+            const pMax = {x: Math.max(this.p1.x, this.p2.x), y : Math.max(this.p1.y, this.p2.y) };
+
+            this.p1.x = pMin.x;
+            this.p1.y = pMin.y;
+            this.p2.x = pMax.x;
+            this.p2.y = pMax.y;
+        }
+    }
+}
+
+class Circle extends InteractiveShape {
+    constructor( x, y, radius, color="" ){
+        super();
+        this.p1 = new Point( x, y, color, 5, "center" ); // center
+        this.p2 = new Point( x + radius, y, color, 5, "radius" ); // radius 
+
+        this.color = color;
+        this.radius = radius;
+        // this.newRadius = this.radius;
+
+        this.p1.move = (x, y) => {
+            this.p1.movePoint(x, y)
+
+            this.p2.x = this.p1.x + this.radius;
+            this.p2.y = this.p1.y;
+        }
+
+        this.p2.move = (x, y) => {
+            this.p2.movePoint(x, y)
+            this.radius = Math.sqrt( Math.pow( this.p1.x - this.p2.x, 2) + Math.pow( this.p1.y - this.p2.y, 2) );
+        }
+
+        this.p1.stopMove = () => this.stopMove("center");
+        this.p2.stopMove = () => this.stopMove("radius");
+
+        this.editable = false;
+    }
+
+    getParams(){
+        return {
+            x: this.p1.x,
+            y: this.p1.y,
+            radius: this.radius
+        }
+    }
+
+    render(){
+        if ( this.editable ){
+            fill(this.color +"88");
+            stroke(this.color);
+   
+            circle( this.p1.x, this.p1.y, this.radius );
+
+            this.p1.render();
+            this.p2.render();
+        } else {
+            fill(this.color +"22");
+            stroke(this.color);
+
+            circle( this.p1.x, this.p1.y, this.radius );			
+        }
+        
+    }
+    
+    checkCollision(x, y){                
+        return Math.sqrt( Math.pow( x - this.p1.x, 2) + Math.pow( y - this.p1.y, 2) ) < this.radius;
+    }
+    
+    moveFunction() {
+
+        if ( this.editable == false ) return null;
+
+        const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
+        const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
+
+        return (x, y) => {
+            this.p1.move( x - PMP1.x, y - PMP1.y);
+            this.p2.move( x - PMP2.x, y - PMP2.y);
+        }
+    }
+
+    getPoints(){
+        return [ this.p1, this.p2 ];
+    }
+
+    stopMove(type){
+
+        if ( type == "center" ){
+            this.p2.x = this.p1.x + this.radius;
+            this.p2.y = this.p1.y;
+        } else {
+            const newRadius = Math.sqrt( Math.pow( this.p1.x - this.p2.x, 2) + Math.pow( this.p1.y - this.p2.y, 2) );
+
+            this.radius = newRadius;
+            this.p2.x = this.p1.x + newRadius;
+            this.p2.y = this.p1.y;
+        }
+
+    }
+}
+
+/**
+ * adaptHotSpotToInteractiveRenderShape :: Convert the hostpot shape to a InteractiveShape
+ * @param {HotSpot} hs - A hotspot element 
+*/
+function adaptHotSpotToInteractiveRenderShape( hs ){
+
+    const hsShape = hs.getShape();
+
+    if ( hsShape.SHAPE_NAME == "RECT" ){
+        return new Rect(hsShape.x, hsShape.y, hsShape.w, hsShape.h, "#8888ee")
+    } 
+
+    if ( hsShape.SHAPE_NAME == "CIRCLE" ) {
+        return new Circle(hsShape.x, hsShape.y, hsShape.radius, "#8888ee")
+    }
+
+    return null;
+}
+
+
+/* 
+Problemas a resolver no editor : 
+
+- Salvar as informações em algum arquivo ( baixar ? ); ✅
+- Posições e tamanhos estão em valores absolutos ( necessário normalizar ); ✅
+- Posições começam do ponto ( 0,0 ) externo a imagem ( 10, 10 ); ✅
+- Importar dados;
+- Sem suporte para mobile ( edição );
+- Sem interface ( apenas o modelo de teste );
+- Código complexo e confuso ( organizar código nos arquivos ); ✅
+- Mistura da camada de dados ( components.js ) com o código da interface; (???)
+- Desacoplar código; ✅
+- Classes parecidas e com funções diferentes;
+- Performance do código é desconhecida;
+- Muito código desnecessário e não mais funcional comentado : ✅
+- feature : Modo de teste, implementar um mecanismo rápido de teste com o jogo;
+- feautre : Player, implementar a leitura e interação com base nos dados gerados pelo editor;
+
+*/

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEste com canvas</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            display: flex;
+            flex-direction: row;
+        }
+        canvas { border: 1px solid red; margin: auto; background-color: aliceblue;}
+    </style>
+</head>
+<body>
+    <!-- <img src="img-teste.png" id="frameImage"/> -->
+    <canvas id="frameCanvas" width="960px" height="540px"></canvas>
+
+    <div class="actions">
+        <button onclick="addHotSpot()" class="btn-action">+ HotSpot</button>
+    </div>
+
+
+    <script>
+
+        const canvas = document.querySelector('#frameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const shapeList= [];
+        let selectedPoint = null;
+
+        let image; 
+        const imgProperties = {};
+
+        let mouseX, mouseY; // like p5js
+
+        // ---------- Basic render functions ----------
+        function fill(color) {
+            ctx.fillStyle = color;
+            // ctx.fill();
+        }
+
+        function stroke(color){
+            ctx.strokeStyle = color;
+            ctx.stroke();
+        }
+
+        function strokeWeight(weight){
+            ctx.lineWidth = weight;
+        }
+
+        function rect(x, y, w, h){
+            ctx.beginPath();
+            ctx.fillRect(x, y, w, h); 
+            ctx.rect(x, y, w, h); 
+            // ctx.fill();
+            ctx.stroke();
+        }
+
+        function line(x, y, x1, y1){
+            ctx.beginPath(); 
+            ctx.moveTo(x, y);
+            ctx.lineTo(x1, y1);
+            ctx.stroke();
+        }
+
+        function circle(x, y, r){
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function background(color){
+            fill(color);
+            ctx.beginPath();
+            ctx.fillRect(0, 0, canvas.width, canvas.height); 
+        }
+
+        function drawImage(image, xOffset, yOffset, newWidth, newHeight){
+            ctx.drawImage(image, xOffset, yOffset, newWidth, newHeight);
+        }
+
+        function clamp(value, vmin, vmax){
+            return Math.max( Math.min(value, vmax), vmin);
+        }
+
+
+        class Point {
+            // Classe para gerir os pontos na tela
+            constructor( x, y, color, radius=20){
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+            }
+
+            render(){               // Função para desenhar os pontos na tela
+                fill( this.color );
+                circle(this.x, this.y, this.radius);
+            }
+
+            move( npx, npy ){       // Função para mover os pontos com o mouse
+                this.x = clamp(npx, 10, canvas.width - 10);
+                this.y = clamp(npy, 10, canvas.height - 10);
+            }
+        }
+
+        class Rect {
+            constructor( x, y, w, h, color="" ){
+				this.p1 = new Point( x, y, color, 5 ); // pmin
+				this.p2 = new Point( x + w, y + h, color, 5 ); // pmax 
+                // this.p3 = new Point( x, y + h, color, 5 ); // img point 1
+                // this.p4 = new Point( x + w, y, color, 5 ); // img point 2
+				this.color = color;
+
+                this.p1.stopMove = () => this.stopMove();
+                this.p2.stopMove = () => this.stopMove();
+
+                // this.center = new Point( (x + x + w)/2, (y + h + y)/2, color, 5)
+            }
+
+            render(){
+				
+				fill(this.color +"22");
+				stroke(this.color);
+
+				rect( this.p1.x, this.p1.y, this.p2.x - this.p1.x, this.p2.y  -this.p1.y );
+				
+				this.p1.render();
+				this.p2.render();
+                // this.p3.render();
+                // this.p4.render();
+
+                // this.center.render();				
+			}
+			
+			checkCollision(x, y, dlt = -5){                
+	            const collX = (x > ( this.p1.x - dlt ) && x < ( this.p2.x + dlt ));
+	            const collY = (y > ( this.p1.y - dlt ) && y < ( this.p2.y + dlt ));
+	            
+	            return collX && collY;
+			}
+			
+			moveFunction() {
+                const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
+                const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
+
+                return (x, y) => {
+                    this.p1.move( x - PMP1.x, y - PMP1.y);
+                    this.p2.move( x - PMP2.x, y - PMP2.y);
+                    // this.p3.move( x - PMP1.x, y - PMP2.y);
+                    // this.p4.move( x - PMP2.x, y - PMP1.y);
+
+                    // this.center.move( x - (PMP1.x + PMP2.x)/2, y - (PMP1.y + PMP2.y)/2);
+                }
+			}
+
+            getPoints(){
+                // return [
+                //     { x : this.p1.x, y : this.p1.y },
+                //     { x : this.p2.x, y : this.p2.y },
+                //     { x : this.p3.x, y : this.p3.y },
+                //     { x : this.p4.x, y : this.p4.y }
+                // ];
+
+                return [ this.p1, this.p2 ]//, this.p3, this.p4 ];
+            }
+
+            getLimits(){
+                return { 
+                    center : { x : this.center.x, y: this.center.y },
+                    size : { x : this.p2.x - this.p1.x, y : this.p2.y -this.p1.y }
+                 };
+            }
+
+            // Move function : 
+            move(x, y){
+                const PMP1 = {x: x - this.p1.x, y: y - this.p1.y};
+                const PMP2 = {x: x - this.p2.x, y: y - this.p2.y};
+
+                return {
+                    move: (x, y) => {
+                        this.p1.move( x - PMP1.x, y - PMP1.y);
+                        this.p2.move( x - PMP2.x, y - PMP2.y);
+                    }
+                }
+            }
+
+            stopMove(){
+                if ( this.p1.x > this.p2.x || this.p1.y > this.p2.y ){
+                    const pMin = {x: Math.min(this.p1.x, this.p2.x), y : Math.min(this.p1.y, this.p2.y) };
+                    const pMax = {x: Math.max(this.p1.x, this.p2.x), y : Math.max(this.p1.y, this.p2.y) };
+
+                    this.p1.x = pMin.x;
+                    this.p1.y = pMin.y;
+                    this.p2.x = pMax.x;
+                    this.p2.y = pMax.y;
+                }
+            }
+        }
+
+
+        function getImageURL(){
+            return ["https://wallpapers.com/images/featured/hd-a5u9zq0a0ymy2dug.jpg", 'http://placehold.it/300x550', "https://www.ufmt.br/ocs/images/phocagallery/galeria2/thumbs/phoca_thumb_l_image03_grd.png",
+                    'https://s2-techtudo.glbimg.com/L9wb1xt7tjjL-Ocvos-Ju0tVmfc=/0x0:1200x800/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/q/l/TIdfl2SA6J16XZAy56Mw/canvaai.png']
+        }
+
+
+        function start(){
+            // const ctx = canvas.getContext("2d");
+
+            image = new Image();
+            // image.src = ;
+            // image.src = 
+            image.src = getImageURL()[Math.floor(Math.random() * 4)]
+            // image.src = "img-teste.png"
+            image.onload = function () {
+                var wrh = image.width / image.height;
+                var newWidth = canvas.width;
+                var newHeight = newWidth / wrh;
+                if (newHeight > canvas.height) {
+                            newHeight = canvas.height;
+                    newWidth = newHeight * wrh;
+                }
+                imgProperties.xOffset = newWidth < canvas.width ? ((canvas.width - newWidth) / 2) : 0;
+                imgProperties.yOffset = newHeight < canvas.height ? ((canvas.height - newHeight) / 2) : 0;
+                imgProperties.newHeight = newHeight;
+                imgProperties.newWidth = newWidth;
+
+
+                draw();
+               
+            };
+
+            window.addEventListener("mousemove", trackMousePosition, false);
+            window.addEventListener("mouseenter", trackMousePosition, false);
+            window.addEventListener("mouseleave", trackMousePosition, false);
+        }
+
+        function trackMousePosition(event){
+            let rect = canvas.getBoundingClientRect();
+            mouseX = event.pageX - rect.left;
+            mouseY = event.pageY - rect.top;
+        }
+
+        function renderFrameImage(){
+            drawImage(image, imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight )
+        }
+
+        function draw() {
+
+            background("#000");
+            renderFrameImage();
+            renderHotSpots();
+            
+            if ( selectedPoint != null ) selectedPoint.move(mouseX, mouseY);
+
+            requestAnimationFrame(draw);
+        }
+
+        function addHotSpot() {
+            const newRect = new Rect(10, 10, 100, 100, "#8888ee");
+
+            shapeList.push( newRect );
+        }
+
+
+        function renderHotSpots(){
+            for ( const p of shapeList ){
+                p.render();
+            }
+        }
+
+        start();
+
+        function move(event) {
+            if ( selectedPoint == null ) return;
+
+            selectedPoint.move( mouseX, mouseY );
+        }
+
+        function deselect(event){
+
+            if (selectedPoint != null && selectedPoint.stopMove != undefined ) { selectedPoint.stopMove(); }
+
+            selectedPoint = null;
+            // updateCounterElements();
+        }
+        
+
+        function selectPoint( event ){
+            
+            const point = checkPoint(mouseX, mouseY);
+            
+            if ( point ){
+                selectedPoint = point;
+                return;
+            } 
+
+            const getShape = checkCollision(mouseX, mouseY);
+
+            if ( getShape == null ) return;
+
+            const moveFunc = getShape.moveFunction(); // recebe uma função que move o shape selecionado
+            
+            selectedPoint = {
+                move : (x, y) => {
+                    moveFunc(x, y);
+                }
+            }
+           
+        }
+
+        function checkCollision(x, y) {
+
+            for ( let i = shapeList.length - 1; i >= 0 ; i-- ){
+                const sp = shapeList[i];
+                if ( sp.checkCollision( x, y ) ){
+                    return sp;
+                }
+            }
+
+            return null;
+        }
+
+        function checkPoint(x, y){
+            for ( const sp of shapeList ){
+                for ( const p of sp.getPoints() ){
+                    const d = Math.sqrt( Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
+                    if ( d < p.radius ){
+                        return p;
+                    }
+                }
+
+            }
+
+            return null;
+        }
+
+        // window.onclick = selectPoint
+        window.onmousemove = move;
+        window.onmousedown = selectPoint;  // down
+        window.onmouseup = deselect;       // up
+
+    </script>
+
+</body>
+</html>
