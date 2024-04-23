@@ -65,7 +65,7 @@ class Point {
     }
 }
 
-class Rect extends InteractiveShape{
+class RectShapeRender extends InteractiveShape{
     constructor( x, y, w, h, color="" ){
         super();
         this.p1 = new Point( x, y, color, 5 ); // pmin
@@ -141,7 +141,7 @@ class Rect extends InteractiveShape{
     }
 }
 
-class Circle extends InteractiveShape {
+class CircleShapeRender extends InteractiveShape {
     constructor( x, y, radius, color="" ){
         super();
         this.p1 = new Point( x, y, color, 5, "center" ); // center
@@ -241,11 +241,11 @@ function adaptHotSpotToInteractiveRenderShape( hs ){
     const hsShape = hs.getShape();
 
     if ( hsShape.SHAPE_NAME == "RECT" ){
-        return new Rect(hsShape.x, hsShape.y, hsShape.w, hsShape.h, "#8888ee")
+        return new RectShapeRender(hsShape.x, hsShape.y, hsShape.w, hsShape.h, "#8888ee")
     } 
 
     if ( hsShape.SHAPE_NAME == "CIRCLE" ) {
-        return new Circle(hsShape.x, hsShape.y, hsShape.radius, "#8888ee")
+        return new CircleShapeRender(hsShape.x, hsShape.y, hsShape.radius, "#8888ee")
     }
 
     return null;
