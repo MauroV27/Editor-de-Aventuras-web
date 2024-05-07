@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player - Editor de Aventuras</title>
+    <link rel="stylesheet" href="editor.css">
+    <script src="components.js"></script>
+    <script src="abstractionLayer.js"></script>
+    <script src="hotspotControler.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div id="canvasParent">
+            <!-- <canvas id="frameCanvas" width="960px" height="540px"></canvas> -->
+        </div>
+    </div>
+
+    <script>
+
+        const CANVAS_BORDER = 0;
+        let canvas; //document.querySelector('#frameCanvas');
+        let ctx;
+
+        const hotSpotsListRender= []; // List of hotspots that appear in current frame loaded in canvas
+        let selectedShapeReference = null; // To store moveFunction in shape
+        let editingHotSpot = false; // bool var to allow edit hotspot
+
+        let image; 
+        const imgProperties = {};
+        let indexFrameView = -1;
+        let indexHotSpot = -1;
+
+        let mouseX, mouseY; // like p5js, this vars store position of mouse in canvas screen
+
+        let frameManager = new FrameManager(); // Handle all data in aplication
+        let isToRenderHotSpots = true;
+
+        //#region :: Functions to manager canvas activity : -----------------------------
+
+        //Function to start code ( setup operations ) :
+        function start() {
+
+            const canvasParentElement = document.querySelector("#canvasParent");
+            canvas = document.createElement('canvas');
+
+            canvasParentElement.appendChild(canvas);
+
+            ctx = canvas.getContext('2d');
+
+            canvas.id = "CursorLayer";
+            canvas.width = document.body.clientWidth;//window.screen.width;
+            canvas.height = document.body.clientHeight;//window.screen.height;
+            canvas.style.position = "absolute";
+            canvas.style.border = "1px solid";
+
+            // FOR TEST --------------------------
+            const jsonValue = JSON.parse(prompt("JSON DATA: "));
+            console.log("JSON VALUE: ", jsonValue);
+            // -------------------------- FOR TEST [END]
+
+            indexFrameView = 0;
+
+            frameManager.importDataInJSON(
+                jsonValue, canvas.width, canvas.height, CANVAS_BORDER
+            )
+
+            console.log("---------------");
+            console.log(frameManager)
+            
+            window.addEventListener("mousemove", trackMousePosition, false);
+            window.addEventListener("mouseenter", trackMousePosition, false);
+            window.addEventListener("mouseleave", trackMousePosition, false);
+        
+            renderCurrentFrame();
+
+
+            // window.addEventListener("keydown", function(e){
+            //     // FOR TEST 
+            //     if ( e.key == "s" ){
+
+            //     }
+            // })
+        }
+
+        /** 
+         * renderOnCanvas :: Manager the renderization of canvas screen. Can handle one single update or many by oneTime properties
+         * @param {boolean} oneTime = false :: if true renders only one sigle frame. The default value implies that will be render continuos frames
+        */
+        function renderOnCanvas(oneTime = false){
+
+            background("#fff");
+            fill("#333333");
+            rect(CANVAS_BORDER, CANVAS_BORDER, canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER));
+
+            // Render frame image : 
+            drawImage(image, imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight )
+
+            // Render hotspots : 
+            for ( const hs of hotSpotsListRender ){
+                hs.render();//imgProperties.xOffset, imgProperties.yOffset);
+            }
+
+            if ( oneTime == true ) return;
+
+            requestAnimationFrame(renderOnCanvas);
+        }
+
+        // Convert mouse event to canvas region
+        function trackMousePosition(event){
+            let rect = canvas.getBoundingClientRect();
+            mouseX = event.pageX - rect.left;
+            mouseY = event.pageY - rect.top;
+        }
+       
+
+        function selectPoint( event ){
+
+            // const point = checkPoint(mouseX, mouseY);
+
+            // if ( point ){
+            //     selectedShapeReference = point;
+            //     return;
+            // } 
+
+            const getShape = checkCollision(mouseX, mouseY);
+
+            if ( getShape == null ) return;
+
+            const originalHotSpot = getShape.getOriginalHotSpotReference();
+            indexFrameView = originalHotSpot.getNextFrame();
+
+            renderCurrentFrame();
+            // const moveFunc = getShape.moveFunction(); // recebe uma função que move o shape selecionado
+            
+            // selectedShapeReference = {
+            //     move : (x, y) => {
+            //         moveFunc(x, y);
+            //     }
+            // }
+           
+        }
+
+        function checkCollision(x, y) {
+
+            for ( let i = hotSpotsListRender.length - 1; i >= 0 ; i-- ){
+                const sp = hotSpotsListRender[i];
+                if ( sp.checkCollision( x, y ) ){
+                    return sp;
+                }
+            }
+
+            return null;
+        }
+
+        function checkPoint(x, y){
+            for ( const sp of hotSpotsListRender ){
+                for ( const p of sp.getPoints() ){
+                    const d = Math.sqrt( Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
+                    if ( d < p.radius ){
+                        return p;
+                    }
+                }
+
+            }
+
+            return null;
+        }
+
+        // window.onclick = selectPoint
+        // window.onmousemove = move;
+        window.onmousedown = selectPoint;  // down
+        // window.onmouseup = deselect;       // up
+            
+        start();
+
+        //#endregion Functions to manager canvas activity : ------------------------- END
+
+        function getCanvasBoundBox(){
+            const minX = CANVAS_BORDER;
+            const minY = CANVAS_BORDER;
+            const sizeW = (canvas.width - (2*CANVAS_BORDER));
+            const sizeH = (canvas.height - (2*CANVAS_BORDER));
+
+            return {minX, minY, sizeW, sizeH};
+        }
+        
+        function renderCurrentFrame(){
+            
+            const frame = frameManager.getFrame( indexFrameView );
+            hotSpotsListRender.length = 0; // clear list of hotspots in render
+
+            const hotSpotsInFrame = frame.getHotSpots();
+            console.log("Frame: ", frame)
+
+            let renderImage = false;
+
+            const callRender = async (value) => {
+                if ( renderImage == true ) {
+                    if (isToRenderHotSpots){
+
+                        /*
+                        O problema é que diferentemente da versão em processing onde a resolução do player e do editor eram as mesmas,
+                        na versão web pode e vai variar, portanto não posso apenas copiar o código, mas implementar uma forma de mudar 
+                        com base na resolução original do editor, de forma que o rescale funcione em qualquer resolução!!!
+
+                        Minha ideia é mudar o player para que fique centralizado na tela (ponto central do canvas)
+
+                        */
+
+                        for ( const index in hotSpotsInFrame ){
+                            const hs = hotSpotsInFrame[ index ];
+                            if ( hs == null ) continue;
+
+                            // const referencePosition = {
+                            //     x : ( (canvas.width  / 2) + CANVAS_BORDER - imgProperties.xOffset) - ( imgProperties.newWidth  / 2  ), 
+                            //     y : ( (canvas.height / 2) + CANVAS_BORDER - imgProperties.yOffset) - ( imgProperties.newHeight / 2  ), 
+                            //     w : ( (canvas.width  / 2) + CANVAS_BORDER - imgProperties.xOffset) - ( imgProperties.newWidth  / 2  ),
+                            //     h : ( (canvas.height / 2) + CANVAS_BORDER - imgProperties.yOffset) - ( imgProperties.newHeight / 2  )
+                            // }
+
+                            const adapter = adaptHotSpotToInteractiveRenderShape(
+                                hs, // HotSpot Data
+                                 CANVAS_BORDER, CANVAS_BORDER, canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER),
+                                // CANVAS_BORDER + imgProperties.xOffset, CANVAS_BORDER + imgProperties.yOffset, 
+                                // canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER),
+                                // referencePosition.x * imgProperties.ratio, referencePosition.y * imgProperties.ratio, referencePosition.w, referencePosition.h, 
+                                // imgProperties.newWidth, imgProperties.newHeight,
+                                // imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth + imgProperties.xOffset, imgProperties.newHeight,
+                                // imgProperties.xOffset, imgProperties.yOffset, canvas.width, canvas.height,
+                                // (canvas.width - imgProperties.newWidth)/2 - imgProperties.xOffset, ((canvas.height - imgProperties.newHeight)) - (imgProperties.yOffset), canvas.width, canvas.height - (imgProperties.newHeight + imgProperties.yOffset)/2,
+                                index,
+                                getCanvasBoundBox
+                            )
+
+                            console.log("Adpater : ", adapter)
+
+
+                            hotSpotsListRender.push( adapter );
+                        }
+
+                    } 
+                
+                    renderOnCanvas(true);
+                }
+
+                renderImage = value;
+            }
+
+            image = new Image();
+            image.src = frame.getImage();
+            image.onload = async function () {
+                
+                const cbb = getCanvasBoundBox();
+                
+                if (image == null) return;
+
+                const widthRatio = cbb.sizeW / image.width;
+                const heightRatio = cbb.sizeH / image.height;
+                const ratio = Math.min(widthRatio, heightRatio);
+
+                imgProperties.newWidth  = Math.floor( image.width  * ratio);
+                imgProperties.newHeight = Math.floor( image.height * ratio);
+
+                imgProperties.xOffset = Math.round( cbb.minX + Math.abs( cbb.sizeW - imgProperties.newWidth ) /2 );
+                imgProperties.yOffset = Math.round( cbb.minY + Math.abs( cbb.sizeH - imgProperties.newHeight) /2 );
+
+                imgProperties.ratio = ratio;
+
+                await callRender(true);
+            };
+
+            callRender(true);
+        }
+
+
+    </script>
+</body>
+</html>

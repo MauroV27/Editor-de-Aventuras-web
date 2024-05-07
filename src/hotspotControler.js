@@ -5,7 +5,13 @@ function clamp(value, vmin, vmax){
 
 class InteractiveShape {
 
-    constructor() {}
+    constructor(hs, hsIndex, canvasRef) {
+        this._hotspot = hs;
+        this.hsIndex = hsIndex;
+        this.canvaRef = canvasRef;
+    }
+
+    getOriginalHotSpotReference(){ return this._hotspot };
     
     setEditable( state ){
         // TODO : Check if state is bool type :
@@ -66,8 +72,8 @@ class Point {
 }
 
 class RectShapeRender extends InteractiveShape{
-    constructor( x, y, w, h, color="" ){
-        super();
+    constructor( x, y, w, h, color="", hs, hsIndex, canvaRef ){
+        super(hs, hsIndex, canvaRef);
         this.p1 = new Point( x, y, color, 5 ); // pmin
         this.p2 = new Point( x + w, y + h, color, 5 ); // pmax 
         this.color = color;
@@ -138,12 +144,26 @@ class RectShapeRender extends InteractiveShape{
             this.p2.x = pMax.x;
             this.p2.y = pMax.y;
         }
+
+        const cbb = this.canvaRef(); 
+
+        // Adjust data in HotSpot shape to fit new size, convert to decimal values
+        const newRectShape = new RectShape(
+            clamp((this.p1.x - cbb.minX) / cbb.sizeW, 0, 1.0),
+            clamp((this.p1.y - cbb.minY) / cbb.sizeH, 0, 1.0), 
+            clamp((this.p2.x - this.p1.x - cbb.minX) / cbb.sizeW, 0, 1.0), 
+            clamp((this.p2.y  -this.p1.y - cbb.minY) / cbb.sizeH, 0, 1.0)
+        );
+
+        const fm = new FrameManager(); // call singleton
+        const frameIndex = fm.currentFrameIndex;
+        fm.updateHotSpotAreaInFrame( frameIndex, this.hsIndex, newRectShape);
     }
 }
 
 class CircleShapeRender extends InteractiveShape {
-    constructor( x, y, radius, color="" ){
-        super();
+    constructor( x, y, radius, color="" , hs, hsIndex, canvaRef){
+        super(hs, hsIndex, canvaRef);
         this.p1 = new Point( x, y, color, 5, "center" ); // center
         this.p2 = new Point( x + radius, y, color, 5, "radius" ); // radius 
 
@@ -229,6 +249,20 @@ class CircleShapeRender extends InteractiveShape {
             this.p2.y = this.p1.y;
         }
 
+        const cbb = this.canvaRef()//getCanvasBoundBox();
+
+        const newCircleShape = new CircleShape(
+            clamp((this.p1.x - cbb.minX ) / cbb.sizeW, 0, 1.0),
+            clamp((this.p1.y - cbb.minY) / cbb.sizeH, 0, 1.0), 
+            clamp((this.p2.x - this.p1.x - cbb.minX) / cbb.sizeW, 0, 1.0)
+        )
+
+        // Adjust data in HotSpot shape to fit new size, convert to decimal values
+        const fm = new FrameManager(); // call singleton
+        const frameIndex = fm.currentFrameIndex;
+
+        fm.updateHotSpotAreaInFrame(frameIndex, this.hsIndex, newCircleShape);
+        
     }
 }
 
@@ -236,19 +270,53 @@ class CircleShapeRender extends InteractiveShape {
  * adaptHotSpotToInteractiveRenderShape :: Convert the hostpot shape to a InteractiveShape
  * @param {HotSpot} hs - A hotspot element 
 */
-function adaptHotSpotToInteractiveRenderShape( hs ){
+function adaptHotSpotToInteractiveRenderShape( hs, offX, offY, sizeW, sizeH, hsIndex, canvasBoundBoxFunction ){
 
     const hsShape = hs.getShape();
+    console.log(offX, offY, sizeW, sizeH)
 
     if ( hsShape.SHAPE_NAME == "RECT" ){
-        return new RectShapeRender(hsShape.x, hsShape.y, hsShape.w, hsShape.h, "#8888ee")
+        return new RectShapeRender(
+            (hsShape.x * sizeW) + offX, 
+            (hsShape.y * sizeH) + offY, 
+            (hsShape.w * sizeW), 
+            (hsShape.h * sizeH), "#8888ee", 
+            hs,
+            hsIndex,
+            canvasBoundBoxFunction)
     } 
 
     if ( hsShape.SHAPE_NAME == "CIRCLE" ) {
-        return new CircleShapeRender(hsShape.x, hsShape.y, hsShape.radius, "#8888ee")
+        return new CircleShapeRender(
+            (hsShape.x * sizeW) + offX, 
+            (hsShape.y * sizeH) + offY, 
+            (hsShape.radius * sizeW), "#8888ee",
+            hs,
+            hsIndex,
+            canvasBoundBoxFunction)
     }
 
     return null;
+}
+
+
+/* Function that find rescale values to image fill canvas keeping the resoluution */
+// TODO : Find better place/file to put this code
+function calculatCurrentFrameImageRect(  minX, minY, sizeW, sizeH, imgWidth, imgHeight) {
+    
+    const imgLimits = {};    
+
+    const widthRatio = sizeW / imgWidth;
+    const heightRatio = sizeH / imgHeight;
+    const ratio = Math.min(widthRatio, heightRatio);
+
+    imgLimits.w = imgWidth  * ratio;
+    imgLimits.h = imgHeight * ratio;
+    
+    imgLimits.x = minX + abs( sizeW - imgLimits.w )/2;
+    imgLimits.y = minY + abs( sizeH - imgLimits.h )/2;
+
+    return imgLimits;
 }
 
 
@@ -264,7 +332,7 @@ Problemas a resolver no editor :
 - Código complexo e confuso ( organizar código nos arquivos ); ✅
 - Mistura da camada de dados ( components.js ) com o código da interface; (???)
 - Desacoplar código; ✅
-- Classes parecidas e com funções diferentes;
+- Classes parecidas e com funções diferentes; ✅
 - Performance do código é desconhecida;
 - Muito código desnecessário e não mais funcional comentado : ✅
 - feature : Modo de teste, implementar um mecanismo rápido de teste com o jogo;
