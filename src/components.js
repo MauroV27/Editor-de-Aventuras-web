@@ -2,7 +2,7 @@
 
 // Base class for any hotspot shape ( ABSTRACT )
 // Works to store data
-class Shape {
+class AbstractShape { 
     SHAPE_NAME = ''
 
     checkPointInside(x, y) {
@@ -15,8 +15,9 @@ class Shape {
 }
 
 
-class RectShape extends Shape {
+class RectShape extends AbstractShape {
     SHAPE_NAME = "RECT"
+    static getType() { return "RECT" };
 
     constructor( px, py, w, h){
         super();
@@ -50,8 +51,9 @@ class RectShape extends Shape {
     }
 }
 
-class CircleShape extends Shape {
+class CircleShape extends AbstractShape {
     SHAPE_NAME = "CIRCLE"
+    static getType() { return "CIRCLE" };
 
     constructor( px, py, radius){
         super();
@@ -113,6 +115,10 @@ class HotSpot {
 
     getShape(){
         return this.shape;
+    }
+
+    setShape( shape ){
+        this.shape = shape;
     }
 
     getData(pixelUnitX=1, pixelUnitY=1){
@@ -209,13 +215,19 @@ class Frame {
  */
 class FrameManager {
 
-    // #WIDTH = 1280;
-    // #HEIGTH = 1280;
-
+    // CHECK : Is better to add method to canvas size in FrameManager (???)
     constructor(){
-        this.frameList = [];
-        this.currentFrameIndex = null;
+        if ( FrameManager._instance ){
+            return FrameManager._instance;
+        } else {
+            // TODO : Convert to private var
+            this.frameList = []; 
+            // TODO : Convert to private var
+            this.currentFrameIndex = null;
+            FrameManager._instance = this;
+        }
     }
+
 
     addFrame( frame ){
         if ( frame instanceof Frame ){
@@ -250,11 +262,20 @@ class FrameManager {
         return this.frameList;
     }
 
+    setCurrentFrameIndex( index ){
+        if ( this.isValidFrame( index ) ){
+            this.currentFrameIndex = index;
+        }   
+    }
+
     exportDataInJSON(canvasWidth, canvasHeight, marginBorder=10) {
         
         // Values to normalize elements in screen
-        const pixelUnitX = 1 / (canvasWidth - 2*marginBorder);
-        const pixelUnitY = 1 / (canvasHeight - 2*marginBorder);        
+        const sizeWidth = canvasWidth - 2*marginBorder;
+        const sizeHeight = canvasHeight - 2*marginBorder;
+        const resolution = Math.max( sizeWidth, sizeHeight);
+        const pixelUnitX = sizeWidth / resolution;
+        const pixelUnitY = sizeHeight / resolution;
 
         const data = {};
 
@@ -274,14 +295,77 @@ class FrameManager {
             unitSize : {
                 x : pixelUnitX,
                 y : pixelUnitY
+            },
+            size : {
+                x : sizeWidth,
+                y : sizeHeight
             }
         }
 
         return data;
     }
 
-    importDataInJSON(json){
+    importDataInJSON(json, canvasWidth, canvasHeight, marginBorder=10){
         // TODO : implement this function
+
+        // Clear data in FrameManager : 
+        this.frameList = [];
+        this.currentFrameIndex = 0;
+
+        // Adjust resolution 
+        const sizeWidth  = (canvasWidth  - 2*marginBorder); /// json.screen.size.x;
+        const sizeHeight = (canvasHeight - 2*marginBorder); /// json.screen.size.y;
+        const resolution = Math.max( sizeWidth, sizeHeight);
+
+        // const unitX = resolution / ( json.screen.unitSize.x * sizeWidth );
+        // const unitY = resolution / ( json.screen.unitSize.y * sizeHeight );
+        const unitX = (resolution / sizeWidth );// * json.screen.unitSize.x;
+        const unitY = (resolution / sizeHeight);// * json.screen.unitSize.y;
+
+        console.log(unitX, unitY)
+
+        const frameListData = json.frames;
+
+        for ( const frameData of frameListData ){
+            const frame = new Frame(frameData.frameImg, frameData.frameName);
+            console.log(frameData.hotsspots )
+
+            for ( const hs of frameData.hotspots ){
+                const shapeBuilder = this.#shapeTypeBuilder(hs.shapeType, hs.shape, unitX, unitY);
+                // if ( shapeBuilder == null ){
+                //     console.error(`Problema na reconstrução do hotspot: ${hs.toString()}`)
+                //     continue;
+                // }
+                console.log(hs.shapeType, shapeBuilder)
+                const hotSpot = new HotSpot(shapeBuilder, hs.target);
+                frame.addHotSpot(hotSpot);
+            }
+
+            this.frameList.push(frame);
+        }
+
     }
 
+
+    #shapeTypeBuilder(shapeType, shapeData, pixelUnitX, pixelUnitY){
+
+        console.log("FrameManager.#shapeTypeBuilder: ", shapeData, shapeType);
+
+        if ( shapeType == RectShape.getType() ){
+            return new RectShape(
+                shapeData.x * pixelUnitX,
+                shapeData.y * pixelUnitY,
+                shapeData.w * pixelUnitX,
+                shapeData.h * pixelUnitY
+            );
+        } else if ( shapeType == CircleShape.getType() ){
+            return new CircleShape(
+                shapeData.x * pixelUnitX, 
+                shapeData.y * pixelUnitY, 
+                shapeData.radius * pixelUnitX
+            );
+        } 
+
+        return null;
+    }
 }
