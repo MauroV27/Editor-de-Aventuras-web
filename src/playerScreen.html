@@ -96,6 +96,12 @@
             // Render frame image : 
             drawImage(image, imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight )
 
+            //#region DEBUG :
+            // stroke("#ff5555");
+            // line(canvas.width/2, 0, canvas.width/2, canvas.height);
+            // line(0, canvas.height/2, canvas.width, canvas.height/2);
+            //#endregion
+
             // Render hotspots : 
             for ( const hs of hotSpotsListRender ){
                 hs.render();//imgProperties.xOffset, imgProperties.yOffset);
@@ -212,25 +218,13 @@
                             const hs = hotSpotsInFrame[ index ];
                             if ( hs == null ) continue;
 
-                            // const referencePosition = {
-                            //     x : ( (canvas.width  / 2) + CANVAS_BORDER - imgProperties.xOffset) - ( imgProperties.newWidth  / 2  ), 
-                            //     y : ( (canvas.height / 2) + CANVAS_BORDER - imgProperties.yOffset) - ( imgProperties.newHeight / 2  ), 
-                            //     w : ( (canvas.width  / 2) + CANVAS_BORDER - imgProperties.xOffset) - ( imgProperties.newWidth  / 2  ),
-                            //     h : ( (canvas.height / 2) + CANVAS_BORDER - imgProperties.yOffset) - ( imgProperties.newHeight / 2  )
-                            // }
-
                             const adapter = adaptHotSpotToInteractiveRenderShape(
                                 hs, // HotSpot Data
-                                 CANVAS_BORDER, CANVAS_BORDER, canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER),
-                                // CANVAS_BORDER + imgProperties.xOffset, CANVAS_BORDER + imgProperties.yOffset, 
-                                // canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER),
-                                // referencePosition.x * imgProperties.ratio, referencePosition.y * imgProperties.ratio, referencePosition.w, referencePosition.h, 
-                                // imgProperties.newWidth, imgProperties.newHeight,
-                                // imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth + imgProperties.xOffset, imgProperties.newHeight,
-                                // imgProperties.xOffset, imgProperties.yOffset, canvas.width, canvas.height,
-                                // (canvas.width - imgProperties.newWidth)/2 - imgProperties.xOffset, ((canvas.height - imgProperties.newHeight)) - (imgProperties.yOffset), canvas.width, canvas.height - (imgProperties.newHeight + imgProperties.yOffset)/2,
-                                index,
-                                getCanvasBoundBox
+                                canvas.width/2, canvas.height/2, // canvas center
+                                canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER), // canvas size without borders
+                                index, // hotspot index
+                                // TODO : Remove getCanvasBoundBox from this, pass canvas size properties to FrameManager
+                                getCanvasBoundBox // function to get size of canvas in HotSpotRender context
                             )
 
                             console.log("Adpater : ", adapter)

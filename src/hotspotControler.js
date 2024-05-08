@@ -147,12 +147,15 @@ class RectShapeRender extends InteractiveShape{
 
         const cbb = this.canvaRef(); 
 
+        const centerX = (cbb.sizeW) / 2;
+        const centerY = (cbb.sizeH) / 2;
+
         // Adjust data in HotSpot shape to fit new size, convert to decimal values
         const newRectShape = new RectShape(
-            clamp((this.p1.x - cbb.minX) / cbb.sizeW, 0, 1.0),
-            clamp((this.p1.y - cbb.minY) / cbb.sizeH, 0, 1.0), 
-            clamp((this.p2.x - this.p1.x - cbb.minX) / cbb.sizeW, 0, 1.0), 
-            clamp((this.p2.y  -this.p1.y - cbb.minY) / cbb.sizeH, 0, 1.0)
+            clamp((this.p1.x - centerX - cbb.minX ) / cbb.sizeW, -1.0, 1.0),
+            clamp((this.p1.y - centerY - cbb.minY ) / cbb.sizeH, -1.0, 1.0), 
+            clamp((this.p2.x - this.p1.x ) / cbb.sizeW, 0, 1.0), 
+            clamp((this.p2.y - this.p1.y ) / cbb.sizeH, 0, 1.0)
         );
 
         const fm = new FrameManager(); // call singleton
@@ -251,10 +254,13 @@ class CircleShapeRender extends InteractiveShape {
 
         const cbb = this.canvaRef()//getCanvasBoundBox();
 
+        const centerX = (cbb.sizeW) / 2;
+        const centerY = (cbb.sizeH) / 2;
+
         const newCircleShape = new CircleShape(
-            clamp((this.p1.x - cbb.minX ) / cbb.sizeW, 0, 1.0),
-            clamp((this.p1.y - cbb.minY) / cbb.sizeH, 0, 1.0), 
-            clamp((this.p2.x - this.p1.x - cbb.minX) / cbb.sizeW, 0, 1.0)
+            clamp((this.p1.x - centerX ) / cbb.sizeW, -1.0, 1.0),
+            clamp((this.p1.y - centerY) / cbb.sizeH, -1.0, 1.0), 
+            clamp((this.p2.x - this.p1.x ) / cbb.sizeW, 0, 1.0)
         )
 
         // Adjust data in HotSpot shape to fit new size, convert to decimal values
