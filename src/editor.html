@@ -126,6 +126,12 @@
                 }
             }
 
+            //#region DEBUG :
+            // stroke("#ff5555");
+            // line(canvas.width/2, 0, canvas.width/2, canvas.height);
+            // line(0, canvas.height/2, canvas.width, canvas.height/2);
+            //#endregion
+
             if ( oneTime == true ) return;
 
             if ( selectedShapeReference != null ) {
@@ -345,10 +351,11 @@
 
                 const adapter = adaptHotSpotToInteractiveRenderShape(
                     hs, // HotSpot Data
-                    CANVAS_BORDER, CANVAS_BORDER, canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER),
-                    // imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight,
-                    index,
-                    getCanvasBoundBox
+                    canvas.width/2, canvas.height/2, // canvas center
+                    canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER), // canvas size without borders
+                    index, // hotspot index
+                    // TODO : Remove getCanvasBoundBox from this, pass canvas size properties to FrameManager
+                    getCanvasBoundBox // function to get size of canvas in HotSpotRender context
                 )
 
                 hotSpotsListRender.push( adapter )
@@ -429,21 +436,17 @@
             const shapeType = document.getElementById("hotSpotShapeType"); 
             const taregtFrame = document.getElementById("hotSpotTarget");
             
-            // TODO : Implement offset for image size (imgProperties.xOffset, imgProperties.yOffset)
-            const [centerX, centerY] = [0.5, 0.5];
-            // const [centerX, centerY] = [(canvas.width - CANVAS_BORDER - imgProperties.xOffset)/2, (canvas.height - CANVAS_BORDER - imgProperties.yOffset)/2];
-            // console.log(imgProperties);
-            // console.log(canvas.width, canvas.height)
-            // const ratio = (imgProperties.newWidth * imgProperties.newHeight) / (canvas.width * canvas.height);
+            const [centerX, centerY] = [0, 0];
+            const ScaleSize = 0.05;
 
             let shape = null;
             switch ( shapeType.value ) {
                 case "RECT":
-                    shape = new RectShape(centerX - 0.1, centerY - 0.1, 0.2, 0.2);
+                    shape = new RectShape(centerX - ScaleSize, centerY - ScaleSize, 2*ScaleSize, 2*ScaleSize);
                     break;
 
                 case "CIRCLE":
-                    shape = new CircleShape(centerX, centerY, 0.2);
+                    shape = new CircleShape(centerX, centerY, 2*ScaleSize);
                     break;
             
                 default:

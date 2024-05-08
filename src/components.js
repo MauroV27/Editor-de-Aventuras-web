@@ -306,8 +306,6 @@ class FrameManager {
     }
 
     importDataInJSON(json, canvasWidth, canvasHeight, marginBorder=10){
-        // TODO : implement this function
-
         // Clear data in FrameManager : 
         this.frameList = [];
         this.currentFrameIndex = 0;
@@ -315,20 +313,24 @@ class FrameManager {
         // Adjust resolution 
         const sizeWidth  = (canvasWidth  - 2*marginBorder); /// json.screen.size.x;
         const sizeHeight = (canvasHeight - 2*marginBorder); /// json.screen.size.y;
+
+        const orgSize = json.screen.size;
+
+        const originalRatio = Math.min(orgSize.x, orgSize.y) / Math.max(orgSize.x, orgSize.y);
+        const playerRatio = Math.min(sizeWidth, sizeHeight) / Math.max(sizeWidth, sizeHeight);
         const resolution = Math.max( sizeWidth, sizeHeight);
 
         // const unitX = resolution / ( json.screen.unitSize.x * sizeWidth );
         // const unitY = resolution / ( json.screen.unitSize.y * sizeHeight );
-        const unitX = (resolution / sizeWidth );// * json.screen.unitSize.x;
-        const unitY = (resolution / sizeHeight);// * json.screen.unitSize.y;
+        const unitX = (resolution / sizeWidth ) / ( originalRatio / playerRatio );// * json.screen.unitSize.x;
+        const unitY = (resolution / sizeHeight) / ( originalRatio / playerRatio );// * json.screen.unitSize.y;
 
-        console.log(unitX, unitY)
+        // console.log(unitX, unitY)
 
         const frameListData = json.frames;
 
         for ( const frameData of frameListData ){
             const frame = new Frame(frameData.frameImg, frameData.frameName);
-            console.log(frameData.hotsspots )
 
             for ( const hs of frameData.hotspots ){
                 const shapeBuilder = this.#shapeTypeBuilder(hs.shapeType, hs.shape, unitX, unitY);
