@@ -371,3 +371,8 @@ class FrameManager {
         return null;
     }
 }
+
+// To check if enviroment is Node or browser. If in Node.js window will be undefined
+if (typeof window === 'undefined'){
+    module.exports = {FrameManager, Frame, HotSpot, RectShape, CircleShape};
+}
