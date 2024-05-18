@@ -268,6 +268,11 @@ class FrameManager {
         }   
     }
 
+    clear(){
+        this.frameList = [];
+        this.currentFrameIndex = 0; 
+    }
+
     exportDataInJSON(canvasWidth, canvasHeight, marginBorder=10) {
         
         // Values to normalize elements in screen
@@ -307,8 +312,7 @@ class FrameManager {
 
     importDataInJSON(json, canvasWidth, canvasHeight, marginBorder=10){
         // Clear data in FrameManager : 
-        this.frameList = [];
-        this.currentFrameIndex = 0;
+        this.clear();
 
         // Adjust resolution 
         const sizeWidth  = (canvasWidth  - 2*marginBorder); /// json.screen.size.x;
