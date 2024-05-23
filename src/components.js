@@ -84,10 +84,12 @@ class CircleShape extends AbstractShape {
 
 class HotSpot {
     constructor( shape, nextFrameIndex ){
+
+        const shapeIsValid = shape instanceof AbstractShape;
+        const nextFrameIndexIsValid = ( nextFrameIndex != null && nextFrameIndex >= 0 );
         
-        // if ( !shape || shape.costructor !== Shape ){ // shape instanceof Shape 
-        //     throw new Error('InvalidArgumentException: shape must extends for Shape class ');
-        // }
+        if ( !shapeIsValid ) throw new Error("Shape must be a value that implements for class AbstractShape");
+        if ( !nextFrameIndexIsValid ) throw new Error("Index must be a integer greater or equal to zero");
 
         this.shape = shape;
         this.next = nextFrameIndex;
