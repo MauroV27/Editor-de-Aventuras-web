@@ -251,7 +251,9 @@ class FrameManager {
 
     deleteFrame( index ){
         // TODO : Add method to delete all hotspots that point for deleted frame    
-        delete this.frameList[index];
+        if ( this.isValidFrame(index) ){
+            this.frameList.splice(index, 1)
+        }
     }
 
     isValidFrame( index ){
