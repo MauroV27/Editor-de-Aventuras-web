@@ -32,21 +32,27 @@ describe("Gerenciando os hotspots e Shapes no Frame", function(){
         expect(hs.next).toEqual(index2go);
     });
 
-    test.skip("Testando criação de hotspot com shape invalido :", () => {
+    test("Testando criação de hotspot com shape invalido :", () => {
         // Arrange :
         const shapeObject = null;//new RectShape(0.1, -0.2, 0.1, 0.1);
 
-        // Act/Assert :
-        expect(new HotSpot(shapeObject, 0)).toThrow();
+        // Act
+        const toFail = () => new HotSpot(shapeObject, 0);
+
+        //Assert :
+        expect(toFail).toThrow("Shape must be a value that implements for class AbstractShape");
     });
 
-    test.skip("Testando criação de hotspot com index invalido :", () => {
+    test("Testando criação de hotspot com index invalido :", () => {
         // Arrange :
         const rcs = new RectShape(0.1, -0.2, 0.1, 0.1);
         const invalidIndex = -1;
 
-        // Act/Assert :
-        expect(new HotSpot(rcs, invalidIndex)).toThrow();
+        // Act
+        const toFail = () => new HotSpot(rcs, invalidIndex);
+
+        //Assert :
+        expect(toFail).toThrow("Index must be a integer greater or equal to zero");
     });
 
 });
