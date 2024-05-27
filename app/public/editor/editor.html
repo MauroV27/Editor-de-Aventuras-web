@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adventure Editor</title>
-    <link rel="stylesheet" href="editor.css">
-    <script src="components.js"></script>
-    <script src="abstractionLayer.js"></script>
-    <script src="hotspotControler.js"></script>
+    <link rel="stylesheet" href="/static/css/editor.css">
+    <script src="/static/components.js"></script>
+    <script src="/static/abstractionLayer.js"></script>
+    <script src="/static/hotspotControler.js"></script>
 </head>
 <body>
     <div class="container">
@@ -84,27 +84,6 @@
                     }
                 }
             })
-
-            // Code for test quickly elements ---------------------------------
-            // REMOVE-BLOCK :
-            // frameManager.addFrame( new Frame("https://png.pngtree.com/background/20230613/original/pngtree-view-of-the-outer-space-with-all-the-planets-picture-image_3403234.jpg", "Space Frame") );
-            
-            // DOC: Hotspots Shape são feitos com valores float (0 e 1) e as classes Render usam as versões convertidas deles para representar e editar na tela
-
-            const w_ = canvas.width;
-            const h_ = canvas.height;
-            const testFrame0 = new Frame("img-teste.png", "FRame teste");
-            testFrame0.addHotSpot( new HotSpot( new CircleShape(100/w_, 250/h_, 50/w_), 1) )
-            frameManager.addFrame( testFrame0 );
-
-            const testeFrameHs = new Frame("img-teste.png", "Borrao teste");
-            testeFrameHs.addHotSpot( new HotSpot( new RectShape(50 / w_, 80 / h_, 50 / w_, 50 / h_), 0));
-            testeFrameHs.addHotSpot( new HotSpot( new RectShape(200 / w_, 100/ h_, 50 / w_, 50/ h_), 0));
-
-            frameManager.addFrame(testeFrameHs );
-
-            renderFrameList()
-            // Code for test quickly elements ----------------------------- END
         }
 
         /** 

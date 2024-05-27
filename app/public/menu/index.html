@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="/static/css/style.css">
+    </head>
+
+    <body>
+
+        <button id="open_modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="3em" height="3em" viewBox="0 0 256 256"><path fill="white" d="M228 128a12 12 0 0 1-12 12h-76v76a12 12 0 0 1-24 0v-76H40a12 12 0 0 1 0-24h76V40a12 12 0 0 1 24 0v76h76a12 12 0 0 1 12 12"/></svg>
+        </button>
+
+        <dialog>
+            <h4>escolha um titulo para o arquivo</h4>
+            <input placeholder="titulo do arquivo" type="text" id="file_title">
+            <h4>escolha uma foto para a capa</h4>
+            <input type="file" id="file_img">
+            <br>
+            <h4>escolha o arquivo json que deseja upar</h4>
+            <input type="file" id="file_json">
+            <br>
+            <textarea rows="8" cols="50" id="file_preview"> </textarea>
+            <br>
+            <button id="upload">upar</button>
+            <button id="close_modal">cancelar</button>
+        </dialog>
+
+        <script type="module" src="/static/menu/script.js"></script>
+
+        <div id="cards">
+           
+        </div>
+
+        
+
+    </body>
+</html>

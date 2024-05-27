@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Editor de Aventuras</title>
-    <link rel="stylesheet" href="editor.css">
-    <script src="components.js"></script>
-    <script src="abstractionLayer.js"></script>
-    <script src="hotspotControler.js"></script>
+    <link rel="stylesheet" href="/static/css/editor.css">
+    <script type="application/javascript" src="/static/components.js"></script>
+    <script type="application/javascript" src="/static/abstractionLayer.js"></script>
+    <script type="application/javascript" src="/static/hotspotControler.js"></script>
+
 </head>
 <body>
     <div class="container">
@@ -39,7 +40,7 @@
         //#region :: Functions to manager canvas activity : -----------------------------
 
         //Function to start code ( setup operations ) :
-        function start() {
+        async function start() {
 
             const canvasParentElement = document.querySelector("#canvasParent");
             canvas = document.createElement('canvas');
@@ -55,8 +56,19 @@
             canvas.style.border = "1px solid";
 
             // FOR TEST --------------------------
-            const jsonValue = JSON.parse(prompt("JSON DATA: "));
-            console.log("JSON VALUE: ", jsonValue);
+            // const jsonValue = JSON.parse(prompt("JSON DATA: "));
+
+
+            const url = document.URL || window.location.href ;
+            const docID = url.split("/").reverse()[0];
+
+            const resp = await fetch("/api/" + docID);
+
+            const doc = await resp.json();
+            console.log("DOC VALUE: ", doc);
+
+            const jsonValue = doc.json;
+            console.log("JSON VALUE: ", doc);
             // -------------------------- FOR TEST [END]
 
             indexFrameView = 0;
@@ -265,7 +277,7 @@
             };
 
             callRender(true);
-        }
+        }   
 
 
     </script>
