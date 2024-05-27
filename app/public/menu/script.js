@@ -4,7 +4,7 @@ async function loadDataFromServer() {
     let listObjects = await fetchData.json();
 
     for ( const doc of listObjects ){
-        creatDiv(doc.data.titulo, doc.data.img, doc.id)
+        creatDiv(doc.data.titulo, doc.data.img, doc.id, doc)
     }
 
 }
@@ -12,16 +12,29 @@ async function loadDataFromServer() {
 loadDataFromServer();
 
 
-function creatDiv(titulo,img,docID){
+function creatDiv(titulo,img,docID,doc){
 
     const cards = document.getElementById("cards")
+
+    let json = JSON.stringify(doc.data.json)
+    let blob = new Blob([json], { type: 'application/json' })
+    let url = URL.createObjectURL(blob)
     
     let newDiv = document.createElement("DIV")
     newDiv.innerHTML = `
         <img src=${img}>
         <h3> ${titulo}</h3> 
         <a class="play" href="/adventure/${docID}">Jogar</a>
+        <a class="baixar" id = ${docID} href = ${url} download = '${titulo}.json' >Baixar</a>
     `
+        //let json = JSON.stringify(doc.data.json)
+        //let blob = new Blob([json], { type: 'application/json' })
+        //let url = URL.createObjectURL(blob)
+        //let link = document.getElementById(docID)
+        //console.log(link)
+        //link.href = url
+        //link.download = titulo + '.json'
+
     // <button class='play' onclick="openPlayer(${docID})"> jogar </button>
     // "<img src=" + img + ">"+
     // "<h3>" + titulo + "</h3>" +
