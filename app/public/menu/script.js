@@ -1,47 +1,57 @@
+class Card {
+    constructor(titulo, img, docID, doc){
+        this.titulo = titulo
+        this.img = img
+        this.docID = docID
+        this.doc = doc
+    }
+
+    baixar(){
+        let json = JSON.stringify(this.doc.data.json)
+        let blob = new Blob([json], { type: 'application/json' })
+        let url = URL.createObjectURL(blob)
+        return url
+    }
+
+    apagar(){
+        // ver como apagar no storage
+    }
+
+    editar(){
+        // ver com o mauro como redirecionar
+    }
+
+    duplicar(){
+        // da teus pulo ai
+    }
+
+    html(){
+        let newDiv = document.createElement("DIV")
+        newDiv.innerHTML = `
+            <img src=${this.img}>
+            <h3> ${this.titulo}</h3> 
+            <a class="play" href="/adventure/${this.docID}">Jogar</a>
+            <a class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</a>
+        `
+        cards.appendChild(newDiv);
+    }
+}
+
 async function loadDataFromServer() {
 
     const fetchData = await fetch("/api");
     let listObjects = await fetchData.json();
 
     for ( const doc of listObjects ){
-        creatDiv(doc.data.titulo, doc.data.img, doc.id, doc)
+        //creatDiv(doc.data.titulo, doc.data.img, doc.id, doc)
+        let card = new Card(doc.data.titulo, doc.data.img, doc.id, doc)
+        card.html()
     }
 
 }
 
+const cards = document.getElementById("cards")
 loadDataFromServer();
-
-
-function creatDiv(titulo,img,docID,doc){
-
-    const cards = document.getElementById("cards")
-
-    let json = JSON.stringify(doc.data.json)
-    let blob = new Blob([json], { type: 'application/json' })
-    let url = URL.createObjectURL(blob)
-    
-    let newDiv = document.createElement("DIV")
-    newDiv.innerHTML = `
-        <img src=${img}>
-        <h3> ${titulo}</h3> 
-        <a class="play" href="/adventure/${docID}">Jogar</a>
-        <a class="baixar" id = ${docID} href = ${url} download = '${titulo}.json' >Baixar</a>
-    `
-        //let json = JSON.stringify(doc.data.json)
-        //let blob = new Blob([json], { type: 'application/json' })
-        //let url = URL.createObjectURL(blob)
-        //let link = document.getElementById(docID)
-        //console.log(link)
-        //link.href = url
-        //link.download = titulo + '.json'
-
-    // <button class='play' onclick="openPlayer(${docID})"> jogar </button>
-    // "<img src=" + img + ">"+
-    // "<h3>" + titulo + "</h3>" +
-    // "<button class='play' id= "+ docID + "> jogar </button>"
-    
-    cards.appendChild(newDiv);
-}
 
 
 // function openPlayer(id) {
