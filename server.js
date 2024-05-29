@@ -1,6 +1,8 @@
 import express from 'express';
-import { routes, __dirname } from './app/routes/routes.js';
+import path from 'path';
+import { routes } from './app/routes/routes.js';
 
+const __dirname = path.resolve(path.dirname(''));
 const port = 3000;
 
 const server = express();
