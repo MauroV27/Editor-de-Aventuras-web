@@ -8,7 +8,11 @@ export function connectAdventureRoutes(router) {
     
     router.get("/api/:id", adventure.getAdvenrute);
     
-    router.post("/api/", adventure.addAdventure);
+    router.post("/api/", adventure.addAdventure); // TODO : SOLVE
+
+    router.delete("/api/:id", adventure.deleteAdventure);
+    
+    // TODO : route for duplicate document, but with a new adventureID
     
 }
 

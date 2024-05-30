@@ -51,4 +51,21 @@ export class AdventureController {
         return res.status(200).json({...resp});
     }
 
+    async deleteAdventure(req, res){
+        const adventureID = req.params.id;
+
+        if ( adventureID == "" || adventureID == null ){
+            return res.status(406).json({"ERROR" : `Not acceptable value for adventure_id : ${adventureID}`});
+        }
+
+        const deletedAdventure = await adventureDAO.deleteAdventure(adventureID);
+
+        if ( deletedAdventure == null ){
+            return res.status(404).json({"ERROR" : `Not found adventure with id : ${adventureID} to delete`});
+        }
+
+        return res.status(200).json(deletedAdventure);
+    }
+
+
 }

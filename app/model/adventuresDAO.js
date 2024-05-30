@@ -1,5 +1,5 @@
 import { ConnectDB } from '../DB/connectDB.js';
-import { collection, where, getDocs, doc, getDoc, addDoc, query, updateDoc } from 'firebase/firestore';
+import { collection, where, getDocs, doc, getDoc, addDoc, query, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export class AdventuresDAO {
 
@@ -59,5 +59,19 @@ export class AdventuresDAO {
         );
 
         return result;
+    }
+
+    async deleteAdventure(adventureID){
+        const db = new ConnectDB();
+
+        const adventureSnap = doc(db, "arquivos", adventureID);
+
+        if ( adventureSnap.exists() ){
+            const res = await deleteDoc(adventureSnap);
+            return res;
+        }
+
+        return null; // adventure not found
+        
     }
 }
