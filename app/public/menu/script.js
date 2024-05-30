@@ -1,3 +1,8 @@
+//import { ConnectDB } from '../DB/connectDB.js';
+//import { collection, where, getDocs, doc, getDoc, addDoc, query, updateDoc } from '../firebase/firestore';
+
+//const db = new ConnectDB();
+
 class Card {
     constructor(titulo, img, docID, doc){
         this.titulo = titulo
@@ -13,16 +18,20 @@ class Card {
         return url
     }
 
-    apagar(){
+    excluir(){
         // ver como apagar no storage
     }
 
     editar(){
-        // ver com o mauro como redirecionar
+        // redirecionar para o editor com o arquivo 
     }
 
     duplicar(){
-        // da teus pulo ai
+        db.collection("arquivos").add({
+            titulo: this.titulo,
+            json: this.json,
+            img: this.img
+            })
     }
 
     html(){
@@ -32,8 +41,14 @@ class Card {
             <h3> ${this.titulo}</h3> 
             <a class="play" href="/adventure/${this.docID}">Jogar</a>
             <a class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</a>
+            <a class="editar" href="">editar</a>
+            <a class="excluir" href="">excluir</a>
         `
         cards.appendChild(newDiv);
+    }
+
+    detalhes(){
+
     }
 }
 
@@ -43,7 +58,6 @@ async function loadDataFromServer() {
     let listObjects = await fetchData.json();
 
     for ( const doc of listObjects ){
-        //creatDiv(doc.data.titulo, doc.data.img, doc.id, doc)
         let card = new Card(doc.data.titulo, doc.data.img, doc.id, doc)
         card.html()
     }
