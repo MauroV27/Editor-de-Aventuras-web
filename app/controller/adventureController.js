@@ -38,15 +38,17 @@ export class AdventureController {
     }
 
     async addAdventure(req, res){
-        // const {img, title, json} = req.body;
-        // console.log(req.body);
+        const {img, title, json} = req.body;
 
-        // console.log(img, title, json)
+        const resp = await adventureDAO.addAdventure(img, title, json);
 
-        // const resp = await adventureDAO.addAdventure(img, title, json)
+        if ( resp == null ){
+            return res.status(500).json({
+                "ERROR" : "Database failSorry, some database failure occurred."
+            });
+        }
 
-        return res.status(501).json({"FAIL" : "Resource not implemented yet"})
+        return res.status(200).json({...resp});
     }
-
 
 }
