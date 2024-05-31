@@ -12,7 +12,7 @@ export function connectAdventureRoutes(router) {
 
     router.delete("/api/:id", adventure.deleteAdventure);
     
-    // TODO : route for duplicate document, but with a new adventureID
+    router.post("/api/copy/:id", adventure.duplicateAdventure);
     
 }
 
