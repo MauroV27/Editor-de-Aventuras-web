@@ -3,20 +3,10 @@ import { AdventuresDAO } from '../model/adventuresDAO.js';
 const adventureDAO = new AdventuresDAO();
 
 export class AdventureController {
-
-    lastAdventesCached = [];
-
+    
     async getLastAdventures(req, res){
-
-        if ( this.lastAdventesCached.length != 0 ){
-            return res.status(200).json(this.lastAdventesCached);
-        }
-
         const lastAdventures = await adventureDAO.getLastAdventures();
-
-        this.lastAdventesCached = lastAdventures;
-
-        return res.status(200).json(this.lastAdventesCached);
+        return res.status(200).json(lastAdventures);
     }
 
 
