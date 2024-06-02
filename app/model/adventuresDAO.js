@@ -62,16 +62,19 @@ export class AdventuresDAO {
     }
 
     async deleteAdventure(adventureID){
+        // WARN : This function does 2 accesses to the database, the first to check if the object exists and the second to delete it!
         const db = new ConnectDB();
 
-        const adventureSnap = doc(db, "arquivos", adventureID);
+        const adventureRef = doc(db, "arquivos", adventureID);
+        const adventureSnap = await getDoc(adventureRef);
 
         if ( adventureSnap.exists() ){
-            const res = await deleteDoc(adventureSnap);
-            return res;
+            await deleteDoc(adventureRef);
+
+            return {"message" : `Document with id : ${adventureID} has been successfully deleted.`};
         }
 
-        return null; // adventure not found
-        
+        return null;
+
     }
 }
