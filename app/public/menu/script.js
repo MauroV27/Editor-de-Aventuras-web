@@ -1,7 +1,4 @@
-//import { ConnectDB } from '../DB/connectDB.js';
-//import { collection, where, getDocs, doc, getDoc, addDoc, query, updateDoc } from '../firebase/firestore';
-
-//const db = new ConnectDB();
+//const { json } = require("express")
 
 class Card {
     constructor(titulo, img, docID, doc){
@@ -20,6 +17,14 @@ class Card {
 
     excluir(){
         // ver como apagar no storage
+        fetch(`/api/${this.docID}`,{
+            method: "delete",
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+        })
+
     }
 
     editar(){
@@ -27,11 +32,7 @@ class Card {
     }
 
     duplicar(){
-        db.collection("arquivos").add({
-            titulo: this.titulo,
-            json: this.json,
-            img: this.img
-            })
+        
     }
 
     html(){
@@ -41,10 +42,31 @@ class Card {
             <h3> ${this.titulo}</h3> 
             <a class="play" href="/adventure/${this.docID}">Jogar</a>
             <a class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</a>
-            <a class="editar" href="">editar</a>
-            <a class="excluir" href="">excluir</a>
+            <a class="editar" href="#">editar</a>
+            <a class="duplicar" id="duplicar${this.docID}" href="#" >duplicar</a>
+            <a class="excluir" href="/api/${this.docID}" >excluir</a>
         `
         cards.appendChild(newDiv);
+        let docID = this.docID
+        document.getElementById(`duplicar${this.docID}`).addEventListener("click", function(){
+            fetch(`/api/copy/${docID}`, {
+                method: "post",
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                  
+                //make sure to serialize your JSON body
+                body: JSON.stringify({
+                  img: this.img,
+                  json: null,
+                  titulo: this.titulo
+                })
+                })
+                .then( (response) => { 
+                    console.log('duplicou')
+                })
+        })
     }
 
     detalhes(){
