@@ -41,6 +41,27 @@ export class AdventureController {
         return res.status(200).json({...resp});
     }
 
+    async updateAdventure(req, res){
+        const {img, title, json} = req.body;
+        const adventureID = req.params.id;
+
+        if ( adventureID == undefined || adventureID == null || adventureID == "" ){
+            return res.status(400).json({
+                "ERROR" : "Update process requires a valid id"
+            });
+        }
+
+        const resp = await adventureDAO.updateAdventure(adventureID, img, title, json);
+
+        if ( resp == null ){
+            return res.status(500).json({
+                "ERROR" : "Database fail! Sorry, some database failure occurred."
+            });
+        }
+
+        return res.status(200).json({...resp});
+    }
+
     async deleteAdventure(req, res){
         const adventureID = req.params.id;
 
