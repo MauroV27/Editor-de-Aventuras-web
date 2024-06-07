@@ -61,17 +61,51 @@ export class AdventuresDAO {
         return result;
     }
 
-    async deleteAdventure(adventureID){
+    async updateAdventure(adventureID, img, title, json){
         const db = new ConnectDB();
 
-        const adventureSnap = doc(db, "arquivos", adventureID);
-
-        if ( adventureSnap.exists() ){
-            const res = await deleteDoc(adventureSnap);
-            return res;
+        const adventureRef = doc(db, 'arquivos', adventureID);
+        const adventureSnap = await getDoc(adventureRef);
+        
+        if ( adventureSnap.exists() == false) {
+            return null;//{data:null, status:"ERROR", message:"Adventure not found"};
         }
 
-        return null; // adventure not found
-        
+        const data = adventureSnap.data();
+        const dataToUpdate = {};
+
+        if ( img && data.img != img ) dataToUpdate["img"] = img;
+        if ( title && data.titulo != title ) dataToUpdate["titulo"] = title;
+        if ( json && data.json != json ) dataToUpdate["json"] = json;
+
+        const result = await updateDoc(adventureRef, dataToUpdate)
+            .then( doc => {
+                // return {data: docRef.data(), status:"OK", message:"Success in update adventure"}
+                return { ...dataToUpdate, id: adventureID}
+            })
+            .catch( error => {
+                if ( error?.message ){
+                    return null;//{data:null, status:"ERROR", message:"Failed in update adventure"}
+                }
+            })
+    
+        return result;
+    }
+
+    async deleteAdventure(adventureID){
+        // WARN : This function does 2 accesses to the database, the first to check if the object exists and the second to delete it!
+        const db = new ConnectDB();
+
+        const adventureRef = doc(db, "arquivos", adventureID);
+        const adventureSnap = await getDoc(adventureRef);
+
+        if ( adventureSnap.exists() ){
+            await deleteDoc(adventureRef);
+
+            return {"message" : `Document with id : ${adventureID} has been successfully deleted.`};
+        }
+
+        return null;
+
     }
 }

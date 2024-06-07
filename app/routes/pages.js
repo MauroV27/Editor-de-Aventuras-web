@@ -11,7 +11,7 @@ export function connectPageRoutes(router) {
         res.sendFile(path.join(__dirname, '/app/public/player/player.html'))
     });
 
-    router.get("/adventure/edit/new", function(req, res){
+    router.get("/adventure/edit/:id", function(req, res){
         res.sendFile(path.join(__dirname, '/app/public/editor/editor.html'))
     });
 

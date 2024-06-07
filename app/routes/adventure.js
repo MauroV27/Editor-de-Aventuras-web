@@ -8,7 +8,9 @@ export function connectAdventureRoutes(router) {
     
     router.get("/api/:id", adventure.getAdvenrute);
     
-    router.post("/api/", adventure.addAdventure); // TODO : SOLVE
+    router.post("/api/", adventure.addAdventure); 
+
+    router.put("/api/:id", adventure.updateAdventure); 
 
     router.delete("/api/:id", adventure.deleteAdventure);
     
