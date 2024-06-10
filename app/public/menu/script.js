@@ -22,9 +22,9 @@ class Card {
             <h3> ${this.titulo}</h3> 
             <a class="play" href="/adventure/${this.docID}">Jogar</a>
             <a class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</a>
-            <a class="editar" id="editar${this.docID}" href="#">editar</a>
+            <a class="editar" href="/adventure/edit/${this.docID}">editar</a>
             <a class="duplicar" id="duplicar${this.docID}" href="#" >duplicar</a>
-            <a class="excluir" href="/api/${this.docID}" >excluir</a>
+            <a class="excluir" id="excluir${this.docID}" href="#" >excluir</a>
         `
         cards.appendChild(newDiv);
         let docID = this.docID
@@ -48,12 +48,12 @@ class Card {
                 })
         })
 
-        document.getElementById(`editar${this.docID}`).addEventListener("click", function(){
-
-        })
-
         document.getElementById(`excluir${this.docID}`).addEventListener("click", function(){
-
+            fetch(`/api/${docID}` , {
+                method: "delete"
+            }).then( (response) => { 
+                console.log("deletado com sucesso")
+            })
         })
     }
 
