@@ -15,26 +15,6 @@ class Card {
         return url
     }
 
-    excluir(){
-        // ver como apagar no storage
-        fetch(`/api/${this.docID}`,{
-            method: "delete",
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-        })
-
-    }
-
-    editar(){
-        // redirecionar para o editor com o arquivo 
-    }
-
-    duplicar(){
-        
-    }
-
     html(){
         let newDiv = document.createElement("DIV")
         newDiv.innerHTML = `
@@ -42,7 +22,7 @@ class Card {
             <h3> ${this.titulo}</h3> 
             <a class="play" href="/adventure/${this.docID}">Jogar</a>
             <a class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</a>
-            <a class="editar" href="#">editar</a>
+            <a class="editar" id="editar${this.docID}" href="#">editar</a>
             <a class="duplicar" id="duplicar${this.docID}" href="#" >duplicar</a>
             <a class="excluir" href="/api/${this.docID}" >excluir</a>
         `
@@ -66,6 +46,14 @@ class Card {
                 .then( (response) => { 
                     console.log('duplicou')
                 })
+        })
+
+        document.getElementById(`editar${this.docID}`).addEventListener("click", function(){
+
+        })
+
+        document.getElementById(`excluir${this.docID}`).addEventListener("click", function(){
+
         })
     }
 

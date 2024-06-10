@@ -17,4 +17,3 @@ export function connectAdventureRoutes(router) {
     router.post("/api/copy/:id", adventure.duplicateAdventure);
     
 }
-
