@@ -3,20 +3,10 @@ import { AdventuresDAO } from '../model/adventuresDAO.js';
 const adventureDAO = new AdventuresDAO();
 
 export class AdventureController {
-
-    lastAdventesCached = [];
-
+    
     async getLastAdventures(req, res){
-
-        if ( this.lastAdventesCached.length != 0 ){
-            return res.status(200).json(this.lastAdventesCached);
-        }
-
         const lastAdventures = await adventureDAO.getLastAdventures();
-
-        this.lastAdventesCached = lastAdventures;
-
-        return res.status(200).json(this.lastAdventesCached);
+        return res.status(200).json(lastAdventures);
     }
 
 
@@ -38,14 +28,83 @@ export class AdventureController {
     }
 
     async addAdventure(req, res){
-        // const {img, title, json} = req.body;
-        // console.log(req.body);
+        const {img, title, json} = req.body;
 
-        // console.log(img, title, json)
+        const resp = await adventureDAO.addAdventure(img, title, json);
 
-        // const resp = await adventureDAO.addAdventure(img, title, json)
+        if ( resp == null ){
+            return res.status(500).json({
+                "ERROR" : "Database failSorry, some database failure occurred."
+            });
+        }
 
-        return res.status(501).json({"FAIL" : "Resource not implemented yet"})
+        return res.status(200).json({...resp});
+    }
+
+    async updateAdventure(req, res){
+        const {img, title, json} = req.body;
+        const adventureID = req.params.id;
+
+        if ( adventureID == undefined || adventureID == null || adventureID == "" ){
+            return res.status(400).json({
+                "ERROR" : "Update process requires a valid id"
+            });
+        }
+
+        const resp = await adventureDAO.updateAdventure(adventureID, img, title, json);
+
+        if ( resp == null ){
+            return res.status(500).json({
+                "ERROR" : "Database fail! Sorry, some database failure occurred."
+            });
+        }
+
+        return res.status(200).json({...resp});
+    }
+
+    async deleteAdventure(req, res){
+        const adventureID = req.params.id;
+
+        if ( adventureID == "" || adventureID == null ){
+            return res.status(406).json({"ERROR" : `Not acceptable value for adventure_id : ${adventureID}`});
+        }
+
+        const deletedAdventure = await adventureDAO.deleteAdventure(adventureID);
+
+        if ( deletedAdventure == null ){
+            return res.status(404).json({"ERROR" : `Not found adventure with id : ${adventureID} to delete`});
+        }
+
+        return res.status(200).json(deletedAdventure);
+    }
+
+
+    async duplicateAdventure(req, res){
+        
+        const adventureID = req.params.id;
+
+        if ( adventureID == "" || adventureID == null ){
+            return res.status(406).json(`ERROR : Not acceptable value for adventure_id : ${adventureID}`);
+        }
+
+        const searchAdventure = await adventureDAO.getAdventure(adventureID);
+
+        if ( searchAdventure == null ){
+            return res.status(404).json(`ERROR : Not found adventure with id : ${adventureID}`);
+        }
+
+        const {img, title, json} = searchAdventure;
+
+        const resp = await adventureDAO.addAdventure(img, title + "copy", json);
+
+        if ( resp == null ){
+            return res.status(500).json({
+                "ERROR" : "Database fail! Sorry, some database failure occurred."
+            });
+        }
+
+        return res.status(200).json({...resp});
+
     }
 
 
