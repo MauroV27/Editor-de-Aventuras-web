@@ -8,6 +8,7 @@
     <script type="application/javascript" src="/static/components.js"></script>
     <script type="application/javascript" src="/static/abstractionLayer.js"></script>
     <script type="application/javascript" src="/static/hotspotControler.js"></script>
+    <script type="application/javascript" src="/static/playerRender.js"></script>
 
 </head>
 <body>
@@ -17,31 +18,15 @@
         </div>
     </div>
 
-    <script>
+    <script>    
 
-        const CANVAS_BORDER = 0;
-        let canvas; //document.querySelector('#frameCanvas');
-        let ctx;
-
-        const hotSpotsListRender= []; // List of hotspots that appear in current frame loaded in canvas
-        let selectedShapeReference = null; // To store moveFunction in shape
-        let editingHotSpot = false; // bool var to allow edit hotspot
-
-        let image; 
-        const imgProperties = {};
-        let indexFrameView = -1;
-        let indexHotSpot = -1;
-
-        let mouseX, mouseY; // like p5js, this vars store position of mouse in canvas screen
-
-        let frameManager = new FrameManager(); // Handle all data in aplication
-        let isToRenderHotSpots = true;
-
-        //#region :: Functions to manager canvas activity : -----------------------------
+        let canvas, ctx;
+        let playerRender; // instance class for render player
 
         //Function to start code ( setup operations ) :
         async function start() {
 
+            // Create canvas : 
             const canvasParentElement = document.querySelector("#canvasParent");
             canvas = document.createElement('canvas');
 
@@ -55,229 +40,30 @@
             canvas.style.position = "absolute";
             canvas.style.border = "1px solid";
 
-            // FOR TEST --------------------------
-            // const jsonValue = JSON.parse(prompt("JSON DATA: "));
+            // Create player render : 
+            playerRender = new PlayerRender(canvas, ctx);
 
-
+            // Load data from server : 
             const url = document.URL || window.location.href ;
-            const docID = url.split("/").reverse()[0];
+            const adventrueID = url.split("/").reverse()[0];
 
-            const resp = await fetch("/api/" + docID);
+            // Load json data in player render
+            await playerRender.loadDataFromServer( adventrueID );
 
-            const doc = await resp.json();
-            console.log("DOC VALUE: ", doc);
+            // Events for interaction : 
+            playerRender.trackInputPosition(window, "mousemove");
+            playerRender.trackInputPosition(window, "mouseenter");
+            playerRender.trackInputPosition(window, "mouseleave");
 
-            const jsonValue = doc.json;
-            console.log("JSON VALUE: ", doc);
-            // -------------------------- FOR TEST [END]
+            // Action events : Click in player
+            window.addEventListener("mousedown", (e) => playerRender.selectPoint(e), false);
 
-            indexFrameView = 0;
-
-            frameManager.importDataInJSON(
-                jsonValue, canvas.width, canvas.height, CANVAS_BORDER
-            )
-
-            console.log("---------------");
-            console.log(frameManager)
             
-            window.addEventListener("mousemove", trackMousePosition, false);
-            window.addEventListener("mouseenter", trackMousePosition, false);
-            window.addEventListener("mouseleave", trackMousePosition, false);
-        
-            renderCurrentFrame();
-
-
-            // window.addEventListener("keydown", function(e){
-            //     // FOR TEST 
-            //     if ( e.key == "s" ){
-
-            //     }
-            // })
+            // Show frame and content in canvas : 
+            playerRender.renderCurrentFrame(); // true -> render only one time ( better performance )
         }
 
-        /** 
-         * renderOnCanvas :: Manager the renderization of canvas screen. Can handle one single update or many by oneTime properties
-         * @param {boolean} oneTime = false :: if true renders only one sigle frame. The default value implies that will be render continuos frames
-        */
-        function renderOnCanvas(oneTime = false){
-
-            background("#fff");
-            fill("#333333");
-            rect(CANVAS_BORDER, CANVAS_BORDER, canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER));
-
-            // Render frame image : 
-            drawImage(image, imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight )
-
-            //#region DEBUG :
-            // stroke("#ff5555");
-            // line(canvas.width/2, 0, canvas.width/2, canvas.height);
-            // line(0, canvas.height/2, canvas.width, canvas.height/2);
-            //#endregion
-
-            // Render hotspots : 
-            for ( const hs of hotSpotsListRender ){
-                hs.render();//imgProperties.xOffset, imgProperties.yOffset);
-            }
-
-            if ( oneTime == true ) return;
-
-            requestAnimationFrame(renderOnCanvas);
-        }
-
-        // Convert mouse event to canvas region
-        function trackMousePosition(event){
-            let rect = canvas.getBoundingClientRect();
-            mouseX = event.pageX - rect.left;
-            mouseY = event.pageY - rect.top;
-        }
-       
-
-        function selectPoint( event ){
-
-            // const point = checkPoint(mouseX, mouseY);
-
-            // if ( point ){
-            //     selectedShapeReference = point;
-            //     return;
-            // } 
-
-            const getShape = checkCollision(mouseX, mouseY);
-
-            if ( getShape == null ) return;
-
-            const originalHotSpot = getShape.getOriginalHotSpotReference();
-            indexFrameView = originalHotSpot.getNextFrame();
-
-            renderCurrentFrame();
-            // const moveFunc = getShape.moveFunction(); // recebe uma função que move o shape selecionado
-            
-            // selectedShapeReference = {
-            //     move : (x, y) => {
-            //         moveFunc(x, y);
-            //     }
-            // }
-           
-        }
-
-        function checkCollision(x, y) {
-
-            for ( let i = hotSpotsListRender.length - 1; i >= 0 ; i-- ){
-                const sp = hotSpotsListRender[i];
-                if ( sp.checkCollision( x, y ) ){
-                    return sp;
-                }
-            }
-
-            return null;
-        }
-
-        function checkPoint(x, y){
-            for ( const sp of hotSpotsListRender ){
-                for ( const p of sp.getPoints() ){
-                    const d = Math.sqrt( Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
-                    if ( d < p.radius ){
-                        return p;
-                    }
-                }
-
-            }
-
-            return null;
-        }
-
-        // window.onclick = selectPoint
-        // window.onmousemove = move;
-        window.onmousedown = selectPoint;  // down
-        // window.onmouseup = deselect;       // up
-            
         start();
-
-        //#endregion Functions to manager canvas activity : ------------------------- END
-
-        function getCanvasBoundBox(){
-            const minX = CANVAS_BORDER;
-            const minY = CANVAS_BORDER;
-            const sizeW = (canvas.width - (2*CANVAS_BORDER));
-            const sizeH = (canvas.height - (2*CANVAS_BORDER));
-
-            return {minX, minY, sizeW, sizeH};
-        }
-        
-        function renderCurrentFrame(){
-            
-            const frame = frameManager.getFrame( indexFrameView );
-            hotSpotsListRender.length = 0; // clear list of hotspots in render
-
-            const hotSpotsInFrame = frame.getHotSpots();
-            console.log("Frame: ", frame)
-
-            let renderImage = false;
-
-            const callRender = async (value) => {
-                if ( renderImage == true ) {
-                    if (isToRenderHotSpots){
-
-                        /*
-                        O problema é que diferentemente da versão em processing onde a resolução do player e do editor eram as mesmas,
-                        na versão web pode e vai variar, portanto não posso apenas copiar o código, mas implementar uma forma de mudar 
-                        com base na resolução original do editor, de forma que o rescale funcione em qualquer resolução!!!
-
-                        Minha ideia é mudar o player para que fique centralizado na tela (ponto central do canvas)
-
-                        */
-
-                        for ( const index in hotSpotsInFrame ){
-                            const hs = hotSpotsInFrame[ index ];
-                            if ( hs == null ) continue;
-
-                            const adapter = adaptHotSpotToInteractiveRenderShape(
-                                hs, // HotSpot Data
-                                canvas.width/2, canvas.height/2, // canvas center
-                                canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER), // canvas size without borders
-                                index, // hotspot index
-                                // TODO : Remove getCanvasBoundBox from this, pass canvas size properties to FrameManager
-                                getCanvasBoundBox // function to get size of canvas in HotSpotRender context
-                            )
-
-                            console.log("Adpater : ", adapter)
-
-
-                            hotSpotsListRender.push( adapter );
-                        }
-
-                    } 
-                
-                    renderOnCanvas(true);
-                }
-
-                renderImage = value;
-            }
-
-            image = new Image();
-            image.src = frame.getImage();
-            image.onload = async function () {
-                
-                const cbb = getCanvasBoundBox();
-                
-                if (image == null) return;
-
-                const widthRatio = cbb.sizeW / image.width;
-                const heightRatio = cbb.sizeH / image.height;
-                const ratio = Math.min(widthRatio, heightRatio);
-
-                imgProperties.newWidth  = Math.floor( image.width  * ratio);
-                imgProperties.newHeight = Math.floor( image.height * ratio);
-
-                imgProperties.xOffset = Math.round( cbb.minX + Math.abs( cbb.sizeW - imgProperties.newWidth ) /2 );
-                imgProperties.yOffset = Math.round( cbb.minY + Math.abs( cbb.sizeH - imgProperties.newHeight) /2 );
-
-                imgProperties.ratio = ratio;
-
-                await callRender(true);
-            };
-
-            callRender(true);
-        }   
 
 
     </script>
