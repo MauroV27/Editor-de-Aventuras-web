@@ -56,10 +56,10 @@ class PlayerRender {
     }
 
     /** 
-     * renderOnCanvas :: Manager the renderization of canvas screen. Can handle one single update or many by oneTime properties
-     * @param {boolean} oneTime = false :: if true renders only one sigle frame. The default value implies that will be render continuos frames
+     * renderOnCanvas :: Manager the renderization of canvas screen. 
+     * This method does not support dynamic updates of elements on the screen, but is the basis for how screen updates run in the EditorRender class
     */
-    renderOnCanvas(oneTime = false){
+    renderOnCanvas(){
 
         background("#fff");
         fill("#333333");
@@ -73,9 +73,6 @@ class PlayerRender {
             hs.render();
         }
 
-        if ( oneTime == true ) return;
-
-        requestAnimationFrame(this.renderOnCanvas);
     }
 
 
@@ -132,40 +129,38 @@ class PlayerRender {
         
         const hotSpotsInFrame = frame.getHotSpots();
 
-        let renderImage = false;
+        const callRender = async () => {
 
-        const callRender = async (value) => {
+            if (this.isToRenderHotSpots){
 
-            if ( renderImage == true ) {
-                if (this.isToRenderHotSpots){
+                for ( const index in hotSpotsInFrame ){
+                    const hs = hotSpotsInFrame[ index ];
+                    if ( hs == null ) continue;
 
-                    for ( const index in hotSpotsInFrame ){
-                        const hs = hotSpotsInFrame[ index ];
-                        if ( hs == null ) continue;
+                    const adapter = adaptHotSpotToInteractiveRenderShape(
+                        hs, // HotSpot Data
+                        this.canvas.width/2, // canvas center x
+                        this.canvas.height/2, // canvas center y
+                        this.canvas.width - (2*this.CANVAS_BORDER), // canvas size X without borders
+                        this.canvas.height - (2*this.CANVAS_BORDER), // canvas size Y without borders
+                        index // hotspot index
+                    )
 
-                        const adapter = adaptHotSpotToInteractiveRenderShape(
-                            hs, // HotSpot Data
-                            this.canvas.width/2, // canvas center x
-                            this.canvas.height/2, // canvas center y
-                            this.canvas.width - (2*this.CANVAS_BORDER), // canvas size X without borders
-                            this.canvas.height - (2*this.CANVAS_BORDER), // canvas size Y without borders
-                            index // hotspot index
-                        )
+                    // console.log("Adpater : ", adapter)
+                    this.hotSpotsListRender.push( adapter );
+                }
 
-                        // console.log("Adpater : ", adapter)
-                        this.hotSpotsListRender.push( adapter );
-                    }
-
-                } 
-            
-                this.renderOnCanvas(true);
-            }
-
-            renderImage = value;
+            } 
+        
+            this.renderOnCanvas();
         }
 
+        this.loadImageInFrame(frame.getImage(), () => callRender());
+    }   
+
+    loadImageInFrame(imgSrcUrl, callBack){
         const img = new Image();
-        img.src = frame.getImage();
+        img.src = imgSrcUrl;
         
         const cbb = this.frameManager.getCanvasArea();
 
@@ -179,12 +174,11 @@ class PlayerRender {
             if (img == null) return;
             loadImageFucntion(img, cbb);
 
-            await callRender(true);
+            await callBack();
         };
 
         this.image = img;
 
-        callRender(true);
-    }   
+    }
 
 }
