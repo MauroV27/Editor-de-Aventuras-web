@@ -33,7 +33,7 @@ class InteractiveShape {
     }
     
     // Return an function that will be use to move shape in canvas
-    moveFunction() {}
+    moveFunction(mx, my) {}
 
     // Return list of points in shape
     getPoints(){
@@ -116,13 +116,13 @@ class RectShapeRender extends InteractiveShape{
         return collX && collY;
     }
     
-    moveFunction() {
+    moveFunction(mx, my) {
 
         if ( this.editable == false ) return null;
 
-        const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
-        const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
-
+        const PMP1 = {x: mx - this.p1.x, y: my - this.p1.y};
+        const PMP2 = {x: mx - this.p2.x, y: my - this.p2.y};
+        
         return (x, y) => {
             this.p1.move( x - PMP1.x, y - PMP1.y);
             this.p2.move( x - PMP2.x, y - PMP2.y);
@@ -221,12 +221,12 @@ class CircleShapeRender extends InteractiveShape {
         return Math.sqrt( Math.pow( x - this.p1.x, 2) + Math.pow( y - this.p1.y, 2) ) < this.radius;
     }
     
-    moveFunction() {
+    moveFunction(mx, my) {
 
         if ( this.editable == false ) return null;
 
-        const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
-        const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
+        const PMP1 = {x: mx - this.p1.x, y: my - this.p1.y};
+        const PMP2 = {x: mx - this.p2.x, y: my - this.p2.y};
 
         return (x, y) => {
             this.p1.move( x - PMP1.x, y - PMP1.y);
