@@ -8,6 +8,8 @@
     <script src="/static/components.js"></script>
     <script src="/static/abstractionLayer.js"></script>
     <script src="/static/hotspotControler.js"></script>
+    <script src="/static/playerRender.js"></script>
+    <script src="/static/editorRender.js"></script>
 </head>
 <body>
     <div class="container">
@@ -44,443 +46,70 @@
 
     <script>
 
-        const CANVAS_BORDER = 10;
+        // const CANVAS_BORDER = 10;
         const canvas = document.querySelector('#frameCanvas');
         const ctx = canvas.getContext('2d');
 
-        const hotSpotsListRender= []; // List of hotspots that appear in current frame loaded in canvas
-        let selectedShapeReference = null; // To store moveFunction in shape
-        let editingHotSpot = false; // bool var to allow edit hotspot
+        const ediotRender = new EditorRender(canvas, ctx);
 
-        let image; 
-        const imgProperties = {};
-        let indexFrameView = -1;
-        let indexHotSpot = -1;
 
-        let mouseX, mouseY; // like p5js, this vars store position of mouse in canvas screen
+        async function start(){
 
-        const frameManager = new FrameManager(); // Handle all data in aplication
+            // get advenure id from URL : 
+            const url = document.URL || window.location.href ;
+            const adventrueID = url.split("/").reverse()[0];
 
-        //#region :: Functions to manager canvas activity : -----------------------------
+            // Load json data in player render
+            await ediotRender.loadDataFromServer( adventrueID );
 
-        //Function to start code ( setup operations ) :
-        function start() {
-            renderFrameList();
+            // Events for interaction : 
+            ediotRender.trackInputPosition(window, "mousemove");
+            ediotRender.trackInputPosition(window, "mouseenter");
+            ediotRender.trackInputPosition(window, "mouseleave");
 
-            window.addEventListener("mousemove", trackMousePosition, false);
-            window.addEventListener("mouseenter", trackMousePosition, false);
-            window.addEventListener("mouseleave", trackMousePosition, false);
-        
-            window.addEventListener("keydown", function(e){
-                // FOR TEST 
-                if ( e.key == "s" ){
-                    const a = frameManager.exportDataInJSON(canvas.width, canvas.height, CANVAS_BORDER);
-                    console.log(a)
-                    console.log(JSON.stringify(a, undefined, 5))
-
-                    const confirmDonwload = confirm("Deseja baixar o arquivo (.json) com os dados da a´plicação?")
-                    if ( confirmDonwload ){
-                        generateJSONFileByData(JSON.stringify(a, undefined, 5), "adventure-js-test.json", document)
-                    }
-                }
-            })
-        }
-
-        /** 
-         * renderOnCanvas :: Manager the renderization of canvas screen. Can handle one single update or many by oneTime properties
-         * @param {boolean} oneTime = false :: if true renders only one sigle frame. The default value implies that will be render continuos frames
-        */
-        function renderOnCanvas(oneTime = false){
-            background("#fff");
-            fill("#333333");
-            rect(CANVAS_BORDER, CANVAS_BORDER, canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER));
-
-            // Render frame image : 
-            drawImage(image, imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight )
-
-            // Render hotspots : 
-            for ( const hs of hotSpotsListRender ){
-                if ( hs != undefined && hs != null ){
-                    hs.render();//imgProperties.xOffset, imgProperties.yOffset, imgProperties.newWidth, imgProperties.newHeight);
-                }
-            }
-
-            //#region DEBUG :
-            // stroke("#ff5555");
-            // line(canvas.width/2, 0, canvas.width/2, canvas.height);
-            // line(0, canvas.height/2, canvas.width, canvas.height/2);
-            //#endregion
-
-            if ( oneTime == true ) return;
-
-            if ( selectedShapeReference != null ) {
-                selectedShapeReference.move(mouseX, mouseY);
-            }
-
-            requestAnimationFrame(renderOnCanvas);
-        }
-
-        // Convert mouse event to canvas region
-        function trackMousePosition(event){
-            let rect = canvas.getBoundingClientRect();
-            mouseX = event.pageX - rect.left;
-            mouseY = event.pageY - rect.top;
-        }
-
-        function move(event) {
-            if ( editingHotSpot == false ) return;
-            if ( selectedShapeReference == null ) return;
-
-            selectedShapeReference.move( mouseX / canvas.width, mouseY / canvas.height);
-        }
-
-        function deselect(event){
-            if ( editingHotSpot == false ) return;
-            if ( selectedShapeReference != null && selectedShapeReference.stopMove != undefined ) {
-                selectedShapeReference.stopMove();
-            }
-
-            // frameManager.updateHotSpotAreaInFrame(indexFrameView, indexHotSpot, hotSpotsListRender[indexHotSpot].getParams());
-            hotSpotsListRender[indexHotSpot].setEditable(false);
-            selectedShapeReference = null;
-            editingHotSpot = false;
+            // Action events : Click in player
+            window.addEventListener("mousedown", (e) => ediotRender.selectPoint(e), false);
+            window.addEventListener("mouseup",   (e) => ediotRender.deselect(e), false);            
+            // window.addEventListener("mousemove", (e) => ediotRender.move(e), false); // Not used for mouse operations
             
-            indexHotSpot = -1;
-            renderOnCanvas(true)
-        }
-        
+            // Show frame and content in canvas : 
+            ediotRender.renderCurrentFrame(); // true -> render only one time ( better performance )
 
-        function selectPoint( event ){
-            // Select a point or shape that users was clicked
-            if ( editingHotSpot == false ) return;
-
-            const point = checkPoint(mouseX, mouseY);
-
-            if ( point ){
-                selectedShapeReference = point;
-                return;
-            } 
-
-            const getShape = checkCollision(mouseX, mouseY);
-
-            if ( getShape == null ) return;
-
-            const moveFunc = getShape.moveFunction(); // recebe uma função que move o shape selecionado
-            
-            selectedShapeReference = {
-                move : (x, y) => { moveFunc(x, y); }, // function to move shape
-                stopMove : () => { getShape.stopMove(); }, // function to call when stop move shape
-            }
-           
         }
 
-        function checkCollision(x, y) {
-
-            for ( let i = hotSpotsListRender.length - 1; i >= 0 ; i-- ){
-                const sp = hotSpotsListRender[i];
-                if ( sp.checkCollision( x, y ) ){
-                    return sp;
-                }
-            }
-
-            return null;
-        }
-
-        function checkPoint(x, y){
-            for ( const sp of hotSpotsListRender ){
-                for ( const p of sp.getPoints() ){
-                    const d = Math.sqrt( Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
-                    if ( d < p.radius ){
-                        return p;
-                    }
-                }
-
-            }
-
-            return null;
-        }
-
-        function getCanvasBoundBox(){
-            const minX = CANVAS_BORDER;
-            const minY = CANVAS_BORDER;
-            const sizeW = (canvas.width - (2*CANVAS_BORDER));
-            const sizeH = (canvas.height - (2*CANVAS_BORDER));
-
-            return {minX, minY, sizeW, sizeH};
-        }
-
-        // window.onclick = selectPoint
-        window.onmousemove = move;
-        window.onmousedown = selectPoint;  // down
-        window.onmouseup = deselect;       // up
-            
         start();
 
-        //#endregion Functions to manager canvas activity : ------------------------- END
-
-        //#region :: Frame functions --------------------------------------
-
-        function addFrame(){
-            const url = prompt("Digite o endereço de uma imagem : ");
-            const frameName = prompt("Digite o nome do frame :") || "Frame " + ( frameManager.getFrames().length + 1 )
-
-            if ( url == null ) return;
-
-            frameManager.addFrame( new Frame(url, frameName) );
-            renderFrameList();
-        }
-
-        function renderFrameList(){
-            const frameList = document.querySelector(".framesList");
-            let textHTML = ''
-
-            for ( const index in frameManager.getFrames() ){
-
-                const frame = frameManager.getFrame( index );
-                const fName = frame.getName();
-
-                textHTML += `
-                    <div class="itemElement">
-                        <img src="${frame.getImage()}" alt="imagemN" onclick="selectFrame(${index})">
-                        <p class="frameName" title="${fName}">${fName.slice(0, 12)}</p>
-                        <button onclick="removeFrame(${index})">X</button>
-                    </div>`                    
-            }
-            
-            frameList.innerHTML = textHTML;
-        }
-
-        function removeFrame( index ){
-            const confirm = window.confirm("Deseja deletar esse frame?");
-
-            if ( indexFrameView == index ){
-                indexFrameView = -1;
-                renderCurrentFrame();
-            }
-
-            if ( confirm ){
-                // TODO : Validate index before acess : 
-                frameManager.deleteFrame( index );
-                renderFrameList();
-            }
+        function addFrame() {
+            ediotRender.addFrame();
         }
 
         function selectFrame(index) {
-            indexFrameView = index;
-            frameManager.setCurrentFrameIndex( index );
-            renderCurrentFrame();
+            ediotRender.selectFrame(index);
         }
 
-        function renderCurrentFrame(){
-            
-            const frameName = document.querySelector('#nameFrameView');
-            const frameHotSpots = document.querySelector('.hotspotList');
-
-            if ( indexFrameView < 0 ){
-                frameName.textContent = "";
-                frameHotSpots.innerHTML = "";
-                return;
-            }
-
-            let renderImage = false;
-
-            const callRender = async (value) => {
-                if ( renderImage == true ) {
-                    renderOnCanvas(true);
-                }
-
-                renderImage = value;
-            }
-
-            const frame = frameManager.getFrame( indexFrameView );
-            hotSpotsListRender.length = 0; // clear list of hotspots in render
-
-            // TODO : Change newHeight and newWidth variable name in imgProperties;            
-            image = new Image();
-            image.src = frame.getImage();
-            image.onload = async function () {
-                
-                const cbb = getCanvasBoundBox();
-                
-                if (image == null) return;
-
-                const widthRatio = cbb.sizeW / image.width;
-                const heightRatio = cbb.sizeH / image.height;
-                const ratio = Math.min(widthRatio, heightRatio);
-
-                imgProperties.newWidth = image.width  * ratio;
-                imgProperties.newHeight = image.height * ratio;
-
-                imgProperties.xOffset = cbb.minX + Math.abs( cbb.sizeW - imgProperties.newWidth  ) / 2;
-                imgProperties.yOffset = cbb.minY + Math.abs( cbb.sizeH - imgProperties.newHeight ) / 2;
-
-                await callRender(true);
-            };
-
-            const hotSpotsInFrame = frame.getHotSpots();
-            console.log("hotspots in frame :", hotSpotsInFrame)
-
-            frameName.textContent = frame.getName();
-
-            let textHTML = ''
-
-            for ( const index in hotSpotsInFrame ){
-                const hs = hotSpotsInFrame[ index ];
-                if ( hs == null ) continue;
-
-                const adapter = adaptHotSpotToInteractiveRenderShape(
-                    hs, // HotSpot Data
-                    canvas.width/2, canvas.height/2, // canvas center
-                    canvas.width - (2*CANVAS_BORDER), canvas.height - (2*CANVAS_BORDER), // canvas size without borders
-                    index, // hotspot index
-                    // TODO : Remove getCanvasBoundBox from this, pass canvas size properties to FrameManager
-                    getCanvasBoundBox // function to get size of canvas in HotSpotRender context
-                )
-
-                hotSpotsListRender.push( adapter )
-                const gotoFrame = frameManager.getFrame( hs.getNextFrame() ).getName();
-
-                textHTML += `                        
-                    <div class="itemElement">
-                        <p>${gotoFrame}</p>
-                        <div class="actionHotSpot">
-                            <button onclick="editHotSpot(${indexFrameView}, ${index})">✎</button>
-                            <button onclick="deleteHotSpot(${indexFrameView}, ${index})">🗑️</button>
-                        </div>
-                    </div>`;
-            }
-
-            frameHotSpots.innerHTML = textHTML;
-
-            callRender(true);
+        function removeFrame(index) {
+            ediotRender.removeFrame(index);
         }
-
-        //#endregion :: Frame functions ---------------------------------- END
-
-        //#region :: HotSpot functions ------------------------------------
-
 
         function openPopup() {
-
-            if ( indexFrameView < 0 ){
-                alert("Crie ou selecione um frame para adicionar uma área clicavel!");
-                return;
-            }
-
-            const modal = document.querySelector("#modalOne");
-            modal.style.display = "block";
-
-            let options = ""
-
-            for ( const index in frameManager.getFrames() ){
-                if ( index != indexFrameView ){
-                    options += `<option value="${index}">${frameManager.getFrame(index).getName()}</option>`
-                }
-            }
-
-            modal.innerHTML = `
-                <div class="modal-content" id="modalReference">
-                    <h3>Criar interação</h3>
-                
-                    <!-- <a class="close">&times;</a> -->
-                    <div class="modal-row">
-                        <label for="hotSpotShapeType">Tipo de interação:</label>
-                        <select name="hotSpotShapeType" id="hotSpotShapeType">
-                            <option value="RECT">Rect</option>
-                            <option value="CIRCLE">Circle</option>
-                        </select>
-                    </div>
-
-                    <div class="modal-row">
-                        <label for="hotSpotTarget">Vá para o frame :</label>
-                        <select name="hotSpotTarget" id="hotSpotTarget">
-                            ${options}
-                        </select>
-                    </div>
-
-                    <div class="modal-row">
-                        <button onclick="addHotSpot()">Adicionar</button>
-                        <button onclick="closePopup()">Cancelar</button>
-                    </div>
-                </div>`            
+            ediotRender.openPopup();
         }
 
         function closePopup() {
-            const modal = document.querySelector("#modalOne");
-            modal.style.display = "none";
-            modal.innerHTML = ""
+            ediotRender.closePopup();
+        }
+        
+        function addHotSpot() {
+            ediotRender.addHotSpot();
         }
 
-        function addHotSpot(){
-            const shapeType = document.getElementById("hotSpotShapeType"); 
-            const taregtFrame = document.getElementById("hotSpotTarget");
-            
-            const [centerX, centerY] = [0, 0];
-            const ScaleSize = 0.05;
-
-            let shape = null;
-            switch ( shapeType.value ) {
-                case "RECT":
-                    shape = new RectShape(centerX - ScaleSize, centerY - ScaleSize, 2*ScaleSize, 2*ScaleSize);
-                    break;
-
-                case "CIRCLE":
-                    shape = new CircleShape(centerX, centerY, 2*ScaleSize);
-                    break;
-            
-                default:
-                    return;
-                    break;
-            } 
-
-            if ( shape == null || taregtFrame == null ){
-                alert("Problem in create hotspot, please try again!")
-                return;
-            }
-
-            const hs = new HotSpot(shape, parseInt(taregtFrame.value));
-
-            frameManager.getFrame( indexFrameView ).addHotSpot( hs );
-            closePopup();
-            selectFrame( indexFrameView );
-        }
-
-        function editHotSpot(frameIndex, hotSpotIndex ) {
-            if ( frameIndex != indexFrameView ) return;
-
-            const frame = frameManager.getFrame( indexFrameView );
-            const hs = frame.getHotSpots()[hotSpotIndex];
-            // TODO : Add param to modify hotspot;        
-
-            // TODO : Implement prompt for customize target
-            // const newHotSpotTarget = confirm("Deseja mudar para onde a área clicavel leva? ");
-            // if ( newHotSpotTarget ){
-                
-            // }
-
-            for ( const index in hotSpotsListRender){
-                hotSpotsListRender[index].setEditable(index == hotSpotIndex);
-            }
-            editingHotSpot = true;
-            indexHotSpot = hotSpotIndex;
-            renderOnCanvas();
+        function editHotSpot(frameIndex, hotSpotIndex) {
+            ediotRender.editHotSpot(frameIndex, hotSpotIndex);
         }
 
         function deleteHotSpot(frameIndex, hotSpotIndex) {
-            if ( frameIndex != indexFrameView ) return;
-
-            const confirm = window.confirm("Deseja deletar essa área clicavel?");
-
-            if ( confirm ){
-                const frame = frameManager.getFrame( indexFrameView );
-
-                frame.deleteHotSpot( parseInt(hotSpotIndex) );
-                renderCurrentFrame();
-            }
-
+            ediotRender.deleteHotSpot(frameIndex, hotSpotIndex);
         }
-
-        //#endregion HotSpot functions -------------------------------- END
 
     </script>
 </body>
