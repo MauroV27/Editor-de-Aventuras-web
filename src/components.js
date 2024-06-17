@@ -217,6 +217,8 @@ class Frame {
  */
 class FrameManager {
 
+    #canvasArea = {minX:0, minY:0, sizeW:0, sizeH:0};
+
     // CHECK : Is better to add method to canvas size in FrameManager (???)
     constructor(){
         if ( FrameManager._instance ){
@@ -228,6 +230,14 @@ class FrameManager {
             this.currentFrameIndex = null;
             FrameManager._instance = this;
         }
+    }
+
+    setCanvasArea(minX, minY, sizeW, sizeH) {
+        this.#canvasArea = {minX, minY, sizeW, sizeH};
+    }
+
+    getCanvasArea(){
+        return this.#canvasArea;
     }
 
 
@@ -277,11 +287,11 @@ class FrameManager {
         this.currentFrameIndex = 0; 
     }
 
-    exportDataInJSON(canvasWidth, canvasHeight, marginBorder=10) {
+    exportDataInJSON() {
         
         // Values to normalize elements in screen
-        const sizeWidth = canvasWidth - 2*marginBorder;
-        const sizeHeight = canvasHeight - 2*marginBorder;
+        const sizeWidth  = this.#canvasArea.sizeW - (2*this.#canvasArea.minX);
+        const sizeHeight = this.#canvasArea.sizeH - (2*this.#canvasArea.minY);
         const resolution = Math.max( sizeWidth, sizeHeight);
         const pixelUnitX = sizeWidth / resolution;
         const pixelUnitY = sizeHeight / resolution;
@@ -314,13 +324,13 @@ class FrameManager {
         return data;
     }
 
-    importDataInJSON(json, canvasWidth, canvasHeight, marginBorder=10){
+    importDataInJSON(json){
         // Clear data in FrameManager : 
         this.clear();
 
         // Adjust resolution 
-        const sizeWidth  = (canvasWidth  - 2*marginBorder); /// json.screen.size.x;
-        const sizeHeight = (canvasHeight - 2*marginBorder); /// json.screen.size.y;
+        const sizeWidth  = this.#canvasArea.sizeW - (2*this.#canvasArea.minX);
+        const sizeHeight = this.#canvasArea.sizeH - (2*this.#canvasArea.minY);
 
         const orgSize = json.screen.size;
 

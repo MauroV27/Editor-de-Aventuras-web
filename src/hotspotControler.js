@@ -5,10 +5,9 @@ function clamp(value, vmin, vmax){
 
 class InteractiveShape {
 
-    constructor(hs, hsIndex, canvasRef) {
+    constructor(hs, hsIndex) {
         this._hotspot = hs;
         this.hsIndex = hsIndex;
-        this.canvaRef = canvasRef;
     }
 
     getOriginalHotSpotReference(){ return this._hotspot };
@@ -34,7 +33,7 @@ class InteractiveShape {
     }
     
     // Return an function that will be use to move shape in canvas
-    moveFunction() {}
+    moveFunction(mx, my) {}
 
     // Return list of points in shape
     getPoints(){
@@ -72,8 +71,8 @@ class Point {
 }
 
 class RectShapeRender extends InteractiveShape{
-    constructor( x, y, w, h, color="", hs, hsIndex, canvaRef ){
-        super(hs, hsIndex, canvaRef);
+    constructor( x, y, w, h, color="", hs, hsIndex ){
+        super(hs, hsIndex);
         this.p1 = new Point( x, y, color, 5 ); // pmin
         this.p2 = new Point( x + w, y + h, color, 5 ); // pmax 
         this.color = color;
@@ -117,13 +116,13 @@ class RectShapeRender extends InteractiveShape{
         return collX && collY;
     }
     
-    moveFunction() {
+    moveFunction(mx, my) {
 
         if ( this.editable == false ) return null;
 
-        const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
-        const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
-
+        const PMP1 = {x: mx - this.p1.x, y: my - this.p1.y};
+        const PMP2 = {x: mx - this.p2.x, y: my - this.p2.y};
+        
         return (x, y) => {
             this.p1.move( x - PMP1.x, y - PMP1.y);
             this.p2.move( x - PMP2.x, y - PMP2.y);
@@ -145,7 +144,8 @@ class RectShapeRender extends InteractiveShape{
             this.p2.y = pMax.y;
         }
 
-        const cbb = this.canvaRef(); 
+        const fm = new FrameManager(); // call singleton
+        const cbb = fm.getCanvasArea();
 
         const centerX = (cbb.sizeW) / 2;
         const centerY = (cbb.sizeH) / 2;
@@ -157,16 +157,15 @@ class RectShapeRender extends InteractiveShape{
             clamp((this.p2.x - this.p1.x ) / cbb.sizeW, 0, 1.0), 
             clamp((this.p2.y - this.p1.y ) / cbb.sizeH, 0, 1.0)
         );
-
-        const fm = new FrameManager(); // call singleton
+        
         const frameIndex = fm.currentFrameIndex;
         fm.updateHotSpotAreaInFrame( frameIndex, this.hsIndex, newRectShape);
     }
 }
 
 class CircleShapeRender extends InteractiveShape {
-    constructor( x, y, radius, color="" , hs, hsIndex, canvaRef){
-        super(hs, hsIndex, canvaRef);
+    constructor( x, y, radius, color="" , hs, hsIndex){
+        super(hs, hsIndex);
         this.p1 = new Point( x, y, color, 5, "center" ); // center
         this.p2 = new Point( x + radius, y, color, 5, "radius" ); // radius 
 
@@ -222,12 +221,12 @@ class CircleShapeRender extends InteractiveShape {
         return Math.sqrt( Math.pow( x - this.p1.x, 2) + Math.pow( y - this.p1.y, 2) ) < this.radius;
     }
     
-    moveFunction() {
+    moveFunction(mx, my) {
 
         if ( this.editable == false ) return null;
 
-        const PMP1 = {x: mouseX - this.p1.x, y: mouseY - this.p1.y};
-        const PMP2 = {x: mouseX - this.p2.x, y: mouseY - this.p2.y};
+        const PMP1 = {x: mx - this.p1.x, y: my - this.p1.y};
+        const PMP2 = {x: mx - this.p2.x, y: my - this.p2.y};
 
         return (x, y) => {
             this.p1.move( x - PMP1.x, y - PMP1.y);
@@ -252,7 +251,8 @@ class CircleShapeRender extends InteractiveShape {
             this.p2.y = this.p1.y;
         }
 
-        const cbb = this.canvaRef()//getCanvasBoundBox();
+        const fm = new FrameManager(); // call singleton
+        const cbb = fm.getCanvasArea();
 
         const centerX = (cbb.sizeW) / 2;
         const centerY = (cbb.sizeH) / 2;
@@ -264,7 +264,6 @@ class CircleShapeRender extends InteractiveShape {
         )
 
         // Adjust data in HotSpot shape to fit new size, convert to decimal values
-        const fm = new FrameManager(); // call singleton
         const frameIndex = fm.currentFrameIndex;
 
         fm.updateHotSpotAreaInFrame(frameIndex, this.hsIndex, newCircleShape);
@@ -276,7 +275,7 @@ class CircleShapeRender extends InteractiveShape {
  * adaptHotSpotToInteractiveRenderShape :: Convert the hostpot shape to a InteractiveShape
  * @param {HotSpot} hs - A hotspot element 
 */
-function adaptHotSpotToInteractiveRenderShape( hs, offX, offY, sizeW, sizeH, hsIndex, canvasBoundBoxFunction ){
+function adaptHotSpotToInteractiveRenderShape( hs, offX, offY, sizeW, sizeH, hsIndex ){
 
     const hsShape = hs.getShape();
     console.log(offX, offY, sizeW, sizeH)
@@ -288,8 +287,7 @@ function adaptHotSpotToInteractiveRenderShape( hs, offX, offY, sizeW, sizeH, hsI
             (hsShape.w * sizeW), 
             (hsShape.h * sizeH), "#8888ee", 
             hs,
-            hsIndex,
-            canvasBoundBoxFunction)
+            hsIndex)
     } 
 
     if ( hsShape.SHAPE_NAME == "CIRCLE" ) {
@@ -298,50 +296,8 @@ function adaptHotSpotToInteractiveRenderShape( hs, offX, offY, sizeW, sizeH, hsI
             (hsShape.y * sizeH) + offY, 
             (hsShape.radius * sizeW), "#8888ee",
             hs,
-            hsIndex,
-            canvasBoundBoxFunction)
+            hsIndex)
     }
 
     return null;
 }
-
-
-/* Function that find rescale values to image fill canvas keeping the resoluution */
-// TODO : Find better place/file to put this code
-function calculatCurrentFrameImageRect(  minX, minY, sizeW, sizeH, imgWidth, imgHeight) {
-    
-    const imgLimits = {};    
-
-    const widthRatio = sizeW / imgWidth;
-    const heightRatio = sizeH / imgHeight;
-    const ratio = Math.min(widthRatio, heightRatio);
-
-    imgLimits.w = imgWidth  * ratio;
-    imgLimits.h = imgHeight * ratio;
-    
-    imgLimits.x = minX + abs( sizeW - imgLimits.w )/2;
-    imgLimits.y = minY + abs( sizeH - imgLimits.h )/2;
-
-    return imgLimits;
-}
-
-
-/* 
-Problemas a resolver no editor : 
-
-- Salvar as informações em algum arquivo ( baixar ? ); ✅
-- Posições e tamanhos estão em valores absolutos ( necessário normalizar ); ✅
-- Posições começam do ponto ( 0,0 ) externo a imagem ( 10, 10 ); ✅
-- Importar dados;
-- Sem suporte para mobile ( edição );
-- Sem interface ( apenas o modelo de teste );
-- Código complexo e confuso ( organizar código nos arquivos ); ✅
-- Mistura da camada de dados ( components.js ) com o código da interface; (???)
-- Desacoplar código; ✅
-- Classes parecidas e com funções diferentes; ✅
-- Performance do código é desconhecida;
-- Muito código desnecessário e não mais funcional comentado : ✅
-- feature : Modo de teste, implementar um mecanismo rápido de teste com o jogo;
-- feautre : Player, implementar a leitura e interação com base nos dados gerados pelo editor;
-
-*/
