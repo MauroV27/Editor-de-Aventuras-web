@@ -126,6 +126,8 @@ class PlayerRender {
 
         const frame = this.frameManager.getFrame( this.indexFrameView );
         this.hotSpotsListRender.length = 0; // clear list of hotspots in render
+
+        if (frame == null || frame == undefined ) return;
         
         const hotSpotsInFrame = frame.getHotSpots();
 
