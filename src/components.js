@@ -332,7 +332,13 @@ class FrameManager {
         const sizeWidth  = this.#canvasArea.sizeW - (2*this.#canvasArea.minX);
         const sizeHeight = this.#canvasArea.sizeH - (2*this.#canvasArea.minY);
 
-        const orgSize = json.screen.size;
+        // When the adventure has just been created (it is empty), without this the code breaks
+        if ( json == undefined || json == null || Object.keys(json).length === 0 ){
+            json = {screen: {}, frames: []}
+        }
+
+        // if json.screen is undefined (json is enpty) so editor uses all valid canvas size
+        const orgSize = json.screen.size || {x : this.#canvasArea.sizeW, y: this.#canvasArea.sizeH};
 
         const originalRatio = Math.min(orgSize.x, orgSize.y) / Math.max(orgSize.x, orgSize.y);
         const playerRatio = Math.min(sizeWidth, sizeHeight) / Math.max(sizeWidth, sizeHeight);
