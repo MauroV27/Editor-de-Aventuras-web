@@ -42,8 +42,11 @@ export class AdventureController {
     }
 
     async updateAdventure(req, res){
+
         const {img, title, json} = req.body;
         const adventureID = req.params.id;
+
+        const adventureJSON = JSON.parse(json);
 
         if ( adventureID == undefined || adventureID == null || adventureID == "" ){
             return res.status(400).json({
@@ -51,7 +54,7 @@ export class AdventureController {
             });
         }
 
-        const resp = await adventureDAO.updateAdventure(adventureID, img, title, json);
+        const resp = await adventureDAO.updateAdventure(adventureID, img, title, adventureJSON);
 
         if ( resp == null ){
             return res.status(500).json({

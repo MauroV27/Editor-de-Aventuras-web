@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adventure Editor</title>
     <link rel="stylesheet" href="/static/css/editor.css">
+    
     <script src="/static/components.js"></script>
     <script src="/static/abstractionLayer.js"></script>
     <script src="/static/hotspotControler.js"></script>
@@ -13,11 +14,18 @@
 </head>
 <body>
     <div class="container">
-        <div class="frameViewContainer">
-            <div class="frameRender">
-                <!-- <div class="hotSpotsRenderContainer"></div> -->
 
-                <!-- <img id="currentFrameView" src="" alt=""> -->
+        <div class="frameViewContainer">
+
+            <!-- Menu superior -->
+            <div class="config-menu">
+                <div class="menu-options">
+                    <button onclick="saveAdventure()"><span class="menu-icon" title="Salvar aventura">🖫</span></button> <!-- https://symbl.cc/en/1F5AB/ -->
+                </div>
+            </div>
+
+
+            <div class="frameRender">
                 <!-- Canvas view for render image and hotspots -->
                 <canvas id="frameCanvas" width="960px" height="540px"></canvas>
             </div>
@@ -109,6 +117,15 @@
 
         function deleteHotSpot(frameIndex, hotSpotIndex) {
             ediotRender.deleteHotSpot(frameIndex, hotSpotIndex);
+        }
+
+        function saveAdventure(){
+            const resp = confirm("Deseja salvar essa aventure?");
+
+            if (resp){
+                ediotRender.saveDataInServer();
+            }
+
         }
 
     </script>
