@@ -18,6 +18,7 @@ class EditorRender extends PlayerRender {
         )
 
         this.animationID = null;
+        this.adventureID = null; // store adventure id
     }
 
 
@@ -26,7 +27,35 @@ class EditorRender extends PlayerRender {
      */
     async loadDataFromServer(adventureID){
         await super.loadDataFromServer(adventureID);
-        this.renderFrameList()
+        this.adventureID = adventureID;
+        this.renderFrameList();
+    }
+
+
+    async saveDataInServer(){
+
+        const sendData = JSON.stringify(this.frameManager.exportDataInJSON());
+
+        // Save data from server : 
+        const resp = await fetch("/api/" + this.adventureID, {
+            method: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                json: sendData
+            })
+        });
+
+        // const doc = await resp.json();
+
+        // console.log("DOC response from save : ", doc);
+
+        // Show popup warning that js
+        alert("Servidor recebeu atualizações");
+
+        console.log("Json foi salvo no servidor!");
     }
 
     
@@ -192,6 +221,8 @@ class EditorRender extends PlayerRender {
         const frame = this.frameManager.getFrame( this.indexFrameView );
         this.hotSpotsListRender.length = 0; // clear list of hotspots in render
 
+        if ( frame == null || frame == undefined ) return; // theres no data to show
+
         const hotSpotsInFrame = frame.getHotSpots();
         // console.log("hotspots in frame :", hotSpotsInFrame)
 
@@ -224,7 +255,6 @@ class EditorRender extends PlayerRender {
         }
 
         frameHotSpots.innerHTML = textHTML;
-
 
         this.loadImageInFrame(frame.getImage(), () => this.renderOnCanvas(true));
     }

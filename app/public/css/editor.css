@@ -45,12 +45,35 @@ body {
     display: flex;
     background-color: var(--mainColor);;
     justify-content: center;
+    flex-direction: column;
 }
 
 .frameRender {
     margin: auto auto;
 }
 
+/* Menu superior de opções */
+
+.config-menu{
+    margin: 0 auto;
+    width: 20%;
+    height: 48px;
+    top: 0;
+    /* background-color: var(--painelColor); */
+}
+
+.menu-options{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-icon{
+    padding: 0;
+    margin-top: 0;
+    font-size: 26px;
+}
 
 .verticalPanel {
     width: 20%;
@@ -187,7 +210,7 @@ body {
 }
 
 
-/* Render and edit Rect HotSpots */
+/* Render and edit Rect HotSpots 
 
 .hotSpotsRenderContainer {
     position: absolute;
@@ -220,7 +243,7 @@ body {
 .resizers .resizer{
     width: 10px;
     height: 10px;
-    border-radius: 50%; /*magic to turn square into circle*/
+    border-radius: 50%; /*magic to turn square into circle
     background: white;
     border: 3px solid #4286f4;
     position: absolute;
@@ -229,7 +252,7 @@ body {
 .resizers .resizer.top-left {
     left: -5px;
     top: -5px;
-    cursor: nwse-resize; /*resizer cursor*/
+    cursor: nwse-resize; /*resizer cursor
 }
 .resizers .resizer.top-right {
     right: -5px;
