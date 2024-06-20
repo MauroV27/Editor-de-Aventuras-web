@@ -19,6 +19,8 @@ class EditorRender extends PlayerRender {
 
         this.animationID = null;
         this.adventureID = null; // store adventure id
+
+        this.isInPlayerState = false; // To enable/disable the internal player in the editor
     }
 
 
@@ -125,6 +127,11 @@ class EditorRender extends PlayerRender {
 
     selectPoint( event ){
 
+        if ( this.isInPlayerState ){
+            super.selectPoint();
+            return;
+        }
+
         // Select a point or shape that users was clicked
         if ( this.isEditingHotSpot == false ) return;
 
@@ -208,6 +215,11 @@ class EditorRender extends PlayerRender {
     }
 
     renderCurrentFrame(){
+
+        if ( this.isInPlayerState ){
+            super.renderCurrentFrame();
+            return;
+        }
         
         const frameName = document.querySelector('#nameFrameView');
         const frameHotSpots = document.querySelector('.hotspotList');
