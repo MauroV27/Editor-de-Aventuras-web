@@ -210,6 +210,31 @@ body {
 }
 
 
+/* Overlay elements in play mode : */
+
+.hide {
+    visibility: hidden;
+    width: 0;
+    height: 0;
+    pointer-events: all;
+}
+
+/* Estilos para o wrapper */
+.wrapper {
+    position: fixed; /* Torna o wrapper o ponto de referência */
+    height: 100vh; /* Altura da tela */
+    width: 100vw;
+    background-color: rgba(0, 0, 0, 0.65); /* Cor escura com transparência */
+    pointer-events: unset; /* Ignora eventos de clique */
+}
+  
+/* Estilos para o elemento que não deve ser escurecido */
+.not-overlay {
+    position: relative; /* Torna o elemento relativo para posicionamento */
+    z-index: 1; /* Índice z maior que o overlay */
+}
+
+
 /* Render and edit Rect HotSpots 
 
 .hotSpotsRenderContainer {

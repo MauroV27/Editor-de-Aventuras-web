@@ -13,14 +13,18 @@
     <script src="/static/editorRender.js"></script>
 </head>
 <body>
+
+    <div class="wrapper hide"></div>
+
     <div class="container">
 
         <div class="frameViewContainer">
 
             <!-- Menu superior -->
-            <div class="config-menu">
+            <div class="config-menu not-overlay">
                 <div class="menu-options">
                     <button onclick="saveAdventure()"><span class="menu-icon" title="Salvar aventura">🖫</span></button> <!-- https://symbl.cc/en/1F5AB/ -->
+                    <button onclick="playAdventure()"><span class="menu-icon" title="Jogar">▷</span></button>  <!-- https://symbl.cc/en/25B7/ -->
                 </div>
             </div>
 
@@ -126,6 +130,22 @@
                 ediotRender.saveDataInServer();
             }
 
+        }
+
+        function playAdventure() {
+            const wrapper = document.querySelector('.wrapper');
+            const frameRender = document.querySelector(".frameRender");
+
+            if ( ediotRender.isInPlayerState == false ) {
+                wrapper.classList.remove('hide');
+                frameRender.classList.add("not-overlay");
+                ediotRender.isInPlayerState = true;
+            } else {
+                wrapper.classList.add('hide');
+                frameRender.classList.remove("not-overlay");
+                ediotRender.isInPlayerState = false;
+                ediotRender.renderCurrentFrame();
+            }
         }
 
     </script>
