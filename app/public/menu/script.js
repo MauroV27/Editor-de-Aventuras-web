@@ -1,4 +1,4 @@
-//const { json } = require("express")
+
 
 class Card {
     constructor(titulo, img, docID, doc){
@@ -16,15 +16,15 @@ class Card {
     }
 
     html(){
-        let newDiv = document.createElement("DIV")
+        let newDiv = document.createElement("div")
         newDiv.innerHTML = `
             <img src=${this.img}>
             <h3> ${this.titulo}</h3> 
-            <a class="play" href="/adventure/${this.docID}">Jogar</a>
-            <a class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</a>
-            <a class="editar" href="/adventure/edit/${this.docID}">editar</a>
-            <a class="duplicar" id="duplicar${this.docID}" href="#" >duplicar</a>
-            <a class="excluir" id="excluir${this.docID}" href="#" >excluir</a>
+            <md-filled-button class="play" href="/adventure/${this.docID}">jogar</md-filled-button>
+            <md-filled-button class="baixar" href = ${this.baixar()} download = '${this.titulo}.json' >Baixar</md-filled-button>
+            <md-filled-button class="editar" href="/adventure/edit/${this.docID}">editar</md-filled-button>
+            <md-filled-button class="duplicar" id="duplicar${this.docID}" href="#" >duplicar</md-filled-button>
+            <md-filled-button class="excluir" id="excluir${this.docID}" href="#" >excluir</md-filled-button>
         `
         cards.appendChild(newDiv);
         let docID = this.docID

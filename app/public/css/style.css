@@ -1,3 +1,9 @@
+:host {
+    --_container-color: var(--md-filled-button-container-color);
+    --_label-text-color: var(--md-filled-button-label-text-color);
+    --_hover-label-text-color: var(--md-filled-button-hover-label-text-color);
+}
+
 body {
     font-family: "Roboto", sans-serif;
     padding: 0;
@@ -74,59 +80,43 @@ input{
     margin: 0.5em 0.5em 0em 0.5em;
 }
 
-#cards > div > .play{
+md-filled-button{
+    --_label-text-color : #000;
+    --_container-color : #FFC751;
+    --_hover-label-text-color: #000 ;
+
     text-decoration: none;
     font-size: medium ;
     font-weight: 600;
-    background-color: #2DCC25;
+    border: 0 ;
     padding: 0.5rem 1rem;
-    border-radius: 10%;
+}
+
+#cards > div > .play{
     margin: 1rem;
     margin-left: 0;
-    color: black;
 
     grid-row: 3;
     grid-column: 3;
+
 }
 
 #cards > div > .baixar{
-    text-decoration: none;
-    font-size: medium ;
-    font-weight: 600;
-    background-color: #4376c8;
-    border: 0 ;
-    padding: 0.5rem 1rem;
-    border-radius: 10%;
     margin: 1rem;
     margin-right: 0;
-    color: black;
 
     grid-row: 3;
     grid-column: 1;
 }
 
 #cards > div > .editar{
-    text-decoration: none;
-    font-size: medium ;
-    font-weight: 600;
-    background-color: #FFC751;
-    border: 0 ;
-    padding: 0.5rem 1rem;
-    border-radius: 10%;
     margin: 0rem 0rem 1rem 1rem;
-    color: black;
 
     grid-row: 4;
     grid-column: 1;
 }
 
 #cards > div > .duplicar{
-    text-decoration: none;
-    font-size: medium ;
-    font-weight: 600;
-    background-color: #4376c8;
-    padding: 0.5rem 1rem;
-    border-radius: 10%;
     margin: 0rem 1rem 1rem 0rem;
     color: black;
 
@@ -135,18 +125,12 @@ input{
 }
 
 #cards > div > .excluir{
-    text-decoration: none;
-    font-size: medium ;
-    font-weight: 600;
-    background-color: #E93138;
-    padding: 0.5rem 1rem;
-    border-radius: 10%;
     margin: 0rem 1rem 1rem 0rem;
-    color: black;
 
     grid-row: 5;
     grid-column: 2;
 }
+
 
 .loading{
     content: "";

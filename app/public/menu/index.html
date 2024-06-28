@@ -5,6 +5,20 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 
+        <script type="importmap">
+            {
+              "imports": {
+                "@material/web/": "https://esm.run/@material/web/"
+              }
+            }
+          </script>
+          <script type="module">
+            import '@material/web/all.js';
+            import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+        
+            document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+          </script>
+
         <meta charset="utf-8">
         <link rel="stylesheet" href="/static/css/style.css">
     </head>
@@ -15,7 +29,7 @@
             <a href="/adventure/edit/new" > criar novo + </a>
         </nav>
 
-        <button id="open_modal" onclick="">
+        <!-- <button id="open_modal" onclick="">
             <svg xmlns="http://www.w3.org/2000/svg" width="3em" height="3em" viewBox="0 0 256 256"><path fill="white" d="M228 128a12 12 0 0 1-12 12h-76v76a12 12 0 0 1-24 0v-76H40a12 12 0 0 1 0-24h76V40a12 12 0 0 1 24 0v76h76a12 12 0 0 1 12 12"/></svg>
         </button>
 
@@ -32,15 +46,12 @@
             <br>
             <button id="upload">upar</button>
             <button id="close_modal">cancelar</button>
-        </dialog>
+        </dialog> -->
 
         <script type="module" src="/static/menu/script.js"></script>
 
         <div id="cards">
-           
         </div>
-
-        
 
     </body>
 </html>
