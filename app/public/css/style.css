@@ -52,7 +52,7 @@ input{
 #cards > div{
     background-color: rgb(255, 255, 255);
     border: 1px solid gainsboro;
-    margin: 2em 0em 0em 2em;
+    margin: 2em 1em 0em 1em;
     border-radius: 3%;
     box-shadow: 1px 1px 5px rgb(130, 130, 130);
 
@@ -131,24 +131,28 @@ md-filled-button{
     grid-column: 2;
 }
 
-
-.loading{
-    content: "";
-    width: 9em;
-    height: 9em;
-    border-radius: 100%;
-    border: 2px solid transparent;
-    border-left-color: #f1f1f1;
-
-    background: transparent;
-    animation: spinner 1s linear infinite;
+@media (max-width: 770px) { 
+    #cards{
+        display:grid;
+        grid-template-columns: 23.5% 23.5% 23.5% 23.5%;
+    }
 }
 
-@keyframes spinner {
-    to{
-        transform: rotate(0deg);
-    }    
-    from{
-        transform: rotate(-360deg);
+@media (max-width: 430px) { 
+    #cards{
+        display:grid;
+        grid-template-columns: 23.5% 23.5% 23.5% 23.5%;
+    }
+
+    md-filled-button{
+        --_label-text-color : #000;
+        --_container-color : #FFC751;
+        --_hover-label-text-color: #000 ;
+    
+        text-decoration: none;
+        font-size: small ;
+        font-weight: 600;
+        border: 0 ;
+        padding: 0.5rem 1rem;
     }
 }
