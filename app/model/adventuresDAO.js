@@ -1,13 +1,15 @@
 import { ConnectDB } from '../DB/connectDB.js';
-import { collection, where, getDocs, doc, getDoc, addDoc, query, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, where, getDocs, doc, getDoc, addDoc, query, updateDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
 
 export class AdventuresDAO {
 
-    async getLastAdventures(){
+    #COLLECTION_NAME = "arquivos";
+
+    async getLastAdventures( numLastAdventures = 20 ){
         const db = new ConnectDB();
 
-        const adventuresCol = collection(db, "arquivos");
-        const adventuresSnapshot = await getDocs(adventuresCol);
+        const adventuresCol = collection(db, this.#COLLECTION_NAME);
+        const adventuresSnapshot = await getDocs(adventuresCol, limit(numLastAdventures));
         const adventuresList = adventuresSnapshot.docs.map((doc) => {
             return { id: doc.id , data: doc.data() }
         });
@@ -20,7 +22,7 @@ export class AdventuresDAO {
 
         const db = new ConnectDB();
 
-        const adventureRef = doc(db, "arquivos", adventureID);
+        const adventureRef = doc(db, this.#COLLECTION_NAME, adventureID);
         const adventureSnap = await getDoc(adventureRef);
 
         if ( adventureSnap.exists() ){
@@ -42,7 +44,7 @@ export class AdventuresDAO {
 
         const db = new ConnectDB();
 
-        const adventuresCol = collection(db, "arquivos");
+        const adventuresCol = collection(db, this.#COLLECTION_NAME);
 
         const result = await addDoc(adventuresCol, adventureContructor)
             .then( doc => {
@@ -64,7 +66,7 @@ export class AdventuresDAO {
     async updateAdventure(adventureID, img, title, json){
         const db = new ConnectDB();
 
-        const adventureRef = doc(db, 'arquivos', adventureID);
+        const adventureRef = doc(db, this.#COLLECTION_NAME, adventureID);
         const adventureSnap = await getDoc(adventureRef);
         
         if ( adventureSnap.exists() == false) {
@@ -96,7 +98,7 @@ export class AdventuresDAO {
         // WARN : This function does 2 accesses to the database, the first to check if the object exists and the second to delete it!
         const db = new ConnectDB();
 
-        const adventureRef = doc(db, "arquivos", adventureID);
+        const adventureRef = doc(db, this.#COLLECTION_NAME, adventureID);
         const adventureSnap = await getDoc(adventureRef);
 
         if ( adventureSnap.exists() ){

@@ -1,12 +1,32 @@
 import { AdventuresDAO } from '../model/adventuresDAO.js';
+import { CacheAPI } from './adventureCache.js';
 
 const adventureDAO = new AdventuresDAO();
+
+// Stores json data from adventure id :
+const cachedAdventures = new CacheAPI(30, 10);
 
 export class AdventureController {
     
     async getLastAdventures(req, res){
-        const lastAdventures = await adventureDAO.getLastAdventures();
-        return res.status(200).json(lastAdventures);
+
+        const numQueues = cachedAdventures.numQueuesCached();
+
+        if ( numQueues < cachedAdventures.maxQueusInCache() ){
+
+            const lastAdventures = await adventureDAO.getLastAdventures();
+
+            for ( const adv of lastAdventures ){
+                cachedAdventures.insert(adv.id, adv.data)
+            }
+            
+            return res.status(200).json(lastAdventures);
+            
+        } else {
+            return res.status(200).json(cachedAdventures.getAllAdventuresInCache());
+        }
+        
+
     }
 
 
@@ -17,6 +37,11 @@ export class AdventureController {
         if ( adventureID == "" || adventureID == null ){
             return res.status(406).json(`ERROR : Not acceptable value for adventure_id : ${adventureID}`);
         }
+
+        const dataWasInCache = cachedAdventures.getAdventure(adventureID);
+        if ( dataWasInCache ){
+            return res.status(200).json(dataWasInCache);
+        } 
 
         const searchAdventure = await adventureDAO.getAdventure(adventureID);
 
@@ -56,10 +81,14 @@ export class AdventureController {
 
         const resp = await adventureDAO.updateAdventure(adventureID, img, title, adventureJSON);
 
-        if ( resp == null ){
+        if ( resp == null || resp == undefined ){
             return res.status(500).json({
                 "ERROR" : "Database fail! Sorry, some database failure occurred."
             });
+        }
+
+        if ( cachedAdventures.has(adventureID) ){
+            cachedAdventures.update(adventureID, resp.json )
         }
 
         return res.status(200).json({...resp});
@@ -71,6 +100,8 @@ export class AdventureController {
         if ( adventureID == "" || adventureID == null ){
             return res.status(406).json({"ERROR" : `Not acceptable value for adventure_id : ${adventureID}`});
         }
+
+        cachedAdventures.delete(adventureID);
 
         const deletedAdventure = await adventureDAO.deleteAdventure(adventureID);
 
