@@ -13,6 +13,8 @@ export class CacheAPI {
         this._maxAdventuresInCache = maxQueusInCache;
         this._timeToCallAutoRemove = minutesToAutoRemove;
         this._autoRemoveIsActive = false;
+
+        setTimeout(this.autoRemove, this._timeToCallAutoRemove * 1000 * 60); // TEST
     }
 
     maxQueusInCache(){

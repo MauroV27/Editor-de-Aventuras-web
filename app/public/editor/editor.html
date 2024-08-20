@@ -11,6 +11,8 @@
     <script src="/static/hotspotControler.js"></script>
     <script src="/static/playerRender.js"></script>
     <script src="/static/editorRender.js"></script>
+    <script src="/static/playerRender.js"></script>
+    <script src="/static/editorRender.js"></script>
 </head>
 <body>
 
@@ -121,31 +123,6 @@
 
         function deleteHotSpot(frameIndex, hotSpotIndex) {
             ediotRender.deleteHotSpot(frameIndex, hotSpotIndex);
-        }
-
-        function saveAdventure(){
-            const resp = confirm("Deseja salvar essa aventure?");
-
-            if (resp){
-                ediotRender.saveDataInServer();
-            }
-
-        }
-
-        function playAdventure() {
-            const wrapper = document.querySelector('.wrapper');
-            const frameRender = document.querySelector(".frameRender");
-
-            if ( ediotRender.isInPlayerState == false ) {
-                wrapper.classList.remove('hide');
-                frameRender.classList.add("not-overlay");
-                ediotRender.isInPlayerState = true;
-            } else {
-                wrapper.classList.add('hide');
-                frameRender.classList.remove("not-overlay");
-                ediotRender.isInPlayerState = false;
-                ediotRender.renderCurrentFrame();
-            }
         }
 
     </script>

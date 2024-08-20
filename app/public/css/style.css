@@ -1,5 +1,29 @@
+:host {
+    --_container-color: var(--md-filled-button-container-color);
+    --_label-text-color: var(--md-filled-button-label-text-color);
+    --_hover-label-text-color: var(--md-filled-button-hover-label-text-color);
+}
+
 body {
     font-family: "Roboto", sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar{
+    background-color: #4376c8;
+    margin: 0;
+    height: 4em;
+    align-content: center;
+}
+
+.navbar > a {
+    color: white;
+    border: 2px solid white;
+    width: fit-content;
+    padding: 0.5em;
+    margin-left: 1em;
+    text-decoration: none;
 }
 
 #open_modal{
@@ -26,63 +50,109 @@ input{
 }
 
 #cards > div{
-    text-align: center;
     background-color: rgb(255, 255, 255);
     border: 1px solid gainsboro;
-    margin: 2em 0em 0em 2em;
+    margin: 2em 1em 0em 1em;
     border-radius: 3%;
     box-shadow: 1px 1px 5px rgb(130, 130, 130);
 
     display:grid;
     grid-template-columns: 45% 10% 45%;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto auto auto;
     justify-items: center;
+    align-items: start;
+
 }
 
 #cards > div > img{
     padding: 1em 1em 0em 1em;
-    height: 140px;
+    width: 900%;
     border-radius: 3% 3% 0% 0%;
 
     grid-column-start: 2;
-
+    grid-row-start: 1
 }
 #cards > div > h3{
     font-size:larger;
     grid-row: 2;
-    grid-column: 1;
+    grid-column-start: 1;
+    grid-column-end: 4;
+    margin: 0.5em 0.5em 0em 0.5em;
+}
+
+md-filled-button{
+    --_label-text-color : #000;
+    --_container-color : #FFC751;
+    --_hover-label-text-color: #000 ;
+
+    text-decoration: none;
+    font-size: medium ;
+    font-weight: 600;
+    border: 0 ;
+    padding: 0.5rem 1rem;
 }
 
 #cards > div > .play{
-    font-size: medium ;
-    font-weight: 600;
-    background-color: #2DCC25;
-    border: 0 ;
-    padding: 0.5rem 1rem;
-    border-radius: 10%;
     margin: 1rem;
+    margin-left: 0;
 
-    grid-row: 2;
+    grid-row: 3;
+    grid-column: 3;
+
+}
+
+#cards > div > .baixar{
+    margin: 1rem;
+    margin-right: 0;
+
+    grid-row: 3;
+    grid-column: 1;
+}
+
+#cards > div > .editar{
+    margin: 0rem 0rem 1rem 1rem;
+
+    grid-row: 4;
+    grid-column: 1;
+}
+
+#cards > div > .duplicar{
+    margin: 0rem 1rem 1rem 0rem;
+    color: black;
+
+    grid-row: 4;
     grid-column: 3;
 }
 
-.loading{
-    content: "";
-    width: 9em;
-    height: 9em;
-    border-radius: 100%;
-    border: 2px solid transparent;
-    border-left-color: #f1f1f1;
+#cards > div > .excluir{
+    margin: 0rem 1rem 1rem 0rem;
 
-    background: transparent;
-    animation: spinner 1s linear infinite;
+    grid-row: 5;
+    grid-column: 2;
 }
 
-@keyframes spinner {
-    to{
-        transform: rotate(0deg);
-    }    
-    from{
-        transform: rotate(-360deg);
+@media (max-width: 770px) { 
+    #cards{
+        display:grid;
+        grid-template-columns: 23.5% 23.5% 23.5% 23.5%;
+    }
+}
+
+@media (max-width: 430px) { 
+    #cards{
+        display:grid;
+        grid-template-columns: 23.5% 23.5% 23.5% 23.5%;
+    }
+
+    md-filled-button{
+        --_label-text-color : #000;
+        --_container-color : #FFC751;
+        --_hover-label-text-color: #000 ;
+    
+        text-decoration: none;
+        font-size: small ;
+        font-weight: 600;
+        border: 0 ;
+        padding: 0.5rem 1rem;
     }
 }
