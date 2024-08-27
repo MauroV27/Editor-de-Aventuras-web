@@ -10,22 +10,24 @@ export class AdventureController {
     
     async getLastAdventures(req, res){
 
-        const numQueues = cachedAdventures.numQueuesCached();
+        // const numQueues = cachedAdventures.numQueuesCached();
 
-        if ( numQueues < cachedAdventures.maxQueusInCache() ){
+        // if ( numQueues < cachedAdventures.maxQueusInCache() ){
 
-            const lastAdventures = await adventureDAO.getLastAdventures();
+        //     const lastAdventures = await adventureDAO.getLastAdventures();
 
-            for ( const adv of lastAdventures ){
-                cachedAdventures.insert(adv.id, adv.data)
-            }
+        //     for ( const adv of lastAdventures ){
+        //         cachedAdventures.insert(adv.id, adv.data)
+        //     }
             
-            return res.status(200).json(lastAdventures);
+        //     return res.status(200).json(lastAdventures);
             
-        } else {
-            return res.status(200).json(cachedAdventures.getAllAdventuresInCache());
-        }
+        // } else {
+        //     return res.status(200).json(cachedAdventures.getAllAdventuresInCache());
+        // }
         
+        const lastAdventures = await adventureDAO.getLastAdventures();        
+        return res.status(200).json(lastAdventures);
 
     }
 
